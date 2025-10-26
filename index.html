@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>Pill Man</title>
+
+<!-- PWA + iOS web app -->
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Pill Man">
+<meta name="theme-color" content="#0b0f14"/>
+
+<style>
+  body{margin:0;background:#0b0f14;color:#e5f0ff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+        display:flex;justify-content:center;align-items:center;height:100vh}
+  .wrap{width:580px;background:#0e141b;border:1px solid #1a2c40;border-radius:14px;padding:12px;
+        display:flex;flex-direction:column;gap:8px}
+  /* HUD */
+  .hud{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .card{display:grid;grid-template-columns:30px 1fr;align-items:center;height:112px;background:#0b1622;
+        border:1px solid #1a2c40;border-radius:10px;overflow:hidden}
+  .rail{writing-mode:vertical-rl;transform:rotate(180deg);display:flex;align-items:center;justify-content:center;
+        font-weight:700;font-size:10px;color:#8aa0b3}
+  .clock{
+    display:flex;align-items:center;justify-content:center;font-weight:900;font-size:76px;line-height:.9;white-space:nowrap
+  }
+  .clock small{font-size:0.35em;}
+  #hud_pill { color:#ffb74d }     /* yellow/yield */
+  #hud_pill.c-bad { color:#ff4d4d !important } /* overdue */
+  #hud_eat  { color:#ff4d4d }     /* red */
+
+  .c-ok{color:#4ce07a}.c-warn{color:#ffb74d}.c-bad{color:#ff4d4d}
+
+  /* 3×2 grid */
+  .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+  .kcard{position:relative;height:68px;background:#0b1622;border:1px solid #1a2c40;border-radius:10px;overflow:hidden}
+  .knum{position:absolute;top:6px;left:0;right:0;display:flex;justify-content:center;
+        font-weight:900;font-size:35px;line-height:1;white-space:nowrap}
+  .kcap{position:absolute;bottom:4px;left:0;right:0;font-weight:700;font-size:14px;color:#9bb0c4;text-align:center;white-space:nowrap}
+  /* colors to match HUD */
+  #pill_last,#pill_next,#pill_planned{color:#ffb76d}
+  #meal_last,#meal_next,#meal_planned{color:#4ce07a}
+
+  /* status / history */
+  .status{background:#101820;border:1px solid #1a2c40;border-radius:8px;padding:6px 10px;text-align:center;font-weight:600;font-size:13px}
+  .status.ok{color:#4ce07a}.status.warn{color:#ffb74d}.status.bad{color:#ff4d4d}
+  .history{font-family:monospace;font-size:12px;color:#8aa0b3;border-top:1px solid #1a2c40;margin-top:4px;padding-top:4px;line-height:1.4}
+
+  /* controls */
+  .controls{display:flex;justify-content:space-between;gap:12px;margin-top:6px;flex-wrap:wrap}
+  button{flex:1;min-width:120px;height:44px;border-radius:10px;border:none;font-weight:700;font-size:14px;cursor:pointer}
+  .btn-pill {background:#ffb74d;color:#0b0f14}
+  .btn-meal {background:#ff4d4d;color:#ffffff}
+  .btn-upd  {background:#ffb74d;color:#0b0f14}
+  .btn-reset{background:#808080;color:#ffffff}
+
+  .controls-mini{display:flex;justify-content:space-between;gap:12px;margin-top:6px;flex-wrap:wrap}
+  .btn-mini{flex:1;min-width:120px;height:24px;border-radius:8px;border:none;font-weight:700;font-size:12px;cursor:pointer;opacity:.95}
+  .btn-mini.pill{background:#ffb74d;color:#0b0f14}
+  .btn-mini.meal{background:#ff4d4d;color:#ffffff}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <!-- TOP HUD -->
+  <div class="hud">
+    <div class="card">
+      <div class="rail">NEXT PILL</div>
+      <div class="clock" id="hud_pill">—:— <small>—M</small></div>
+    </div>
+    <div class="card">
+      <div class="rail">STOP EATING</div>
+      <div class="clock" id="hud_eat">—:— <small>—M</small></div>
+    </div>
+  </div>
+
+  <!-- 3×2 GRID -->
+  <div class="kpis">
+    <div class="kcard"><div class="knum" id="pill_last">—</div><div class="kcap">Pill — Last</div></div>
+    <div class="kcard"><div class="knum" id="pill_next">—</div><div class="kcap">Pill — Next</div></div>
+    <div class="kcard"><div class="knum" id="pill_planned">—</div><div class="kcap">Pill — Planned</div></div>
+
+    <div class="kcard"><div class="knum" id="meal_last">—</div><div class="kcap">Meal — Last</div></div>
+    <div class="kcard"><div class="knum" id="meal_next">—</div><div class="kcap">Eat After</div></div>
+    <div class="kcard"><div class="knum" id="meal_planned">—</div><div class="kcap">Eat Before</div></div>
+  </div>
+
+  <!-- STATUS + HISTORY -->
+  <div class="status ok" id="status">—</div>
+  <div class="history" id="history"><span>—</span></div>
+
+  <!-- CONTROLS -->
+  <div class="controls">
+    <button class="btn-pill" id="btn_pill">Log Pill</button>
+    <button class="btn-meal" id="btn_meal">Log Meal</button>
+    <button class="btn-upd"  id="btn_update">Update</button>
+    <button class="btn-reset"id="btn_reset">Reset</button>
+  </div>
+  <div class="controls-mini">
+    <button class="btn-mini pill" id="btn_edit_pill">Edit Pill</button>
+    <button class="btn-mini meal" id="btn_edit_meal">Edit Meal</button>
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const two=n=>String(n).padStart(2,"0");
+const H=3600e3;
+const nowTS=()=>Date.now();
+const showClockHTML=ts=>{if(ts==null)return"—";const d=new Date(ts);let h=d.getHours(),m=d.getMinutes();const ap=h>=12?"PM":"AM";h=h%12||12;return `${h}:${two(m)} <small>${ap}</small>`;}
+const showClock=ts=>{if(ts==null)return"—";const d=new Date(ts);let h=d.getHours(),m=d.getMinutes();const ap=h>=12?"PM":"AM";h=h%12||12;return `${h}:${two(m)} ${ap}`;}
+const parseClockInput=t=>{if(!t)return null;const s=String(t).trim();if(!s)return null;const d=new Date();if(s.includes(":")){const [H,M="0"]=s.split(":");const hh=+H,mm=+M; if(isNaN(hh)||isNaN(mm))return null; d.setHours(hh,mm,0,0);return d.getTime();}const f=+s;if(isNaN(f))return null;const hh=Math.floor(f),mm=Math.round((f-hh)*60);d.setHours(hh,mm,0,0);return d.getTime();}
+function pushHist(label){const d=new Date(),h=two(d.getHours()),m=two(d.getMinutes());const line=`${h}:${m}  ${label}`,box=$("history");const curr=[...box.querySelectorAll("span")].map(s=>s.textContent).filter(t=>t!=="—");box.innerHTML=[line,...curr].slice(0,3).map(t=>`<span>${t}</span>`).join("");}
+
+let LAST_PILL_TS=null, LAST_MEAL_TS=null;
+const GAP_PILL=8*H, NO_EAT_1H=1*H, PRE_PILL_2H=2*H;
+
+function plan(){
+  const t=nowTS();
+  if(LAST_PILL_TS==null){return{lp:null,lm:LAST_MEAL_TS,nextP:null,cutoff:null,eatAfter:null,eatBefore:null,plannedP:null,overdue:false};}
+  const lp=LAST_PILL_TS;
+  const dueP=lp+GAP_PILL;
+  const nextP=dueP;
+  const overdue=t>dueP;
+  const eatAfter=lp+NO_EAT_1H;
+  const eatBefore=dueP-PRE_PILL_2H;
+  let plannedP=lp+16*H; if(plannedP<=t)plannedP+=24*H;
+  const cutoff=eatBefore;
+  return{lp,lm:LAST_MEAL_TS,nextP,cutoff,eatAfter,eatBefore,plannedP,overdue};
+}
+
+function render(){
+  const r=plan();
+  $("hud_pill").innerHTML=showClockHTML(r.nextP);
+  $("hud_eat").innerHTML =showClockHTML(r.cutoff);
+
+  const t=nowTS();
+  const pillMs=r.nextP?(r.nextP-t):0, cutMs=r.cutoff?(r.cutoff-t):0;
+  const pillEl=$("hud_pill"), eatEl=$("hud_eat");
+  const pillC=pillEl.parentElement, eatC=eatEl.parentElement;
+  [pillC,eatC].forEach(c=>c.classList.remove("c-ok","c-warn","c-bad")); pillEl.classList.remove("c-bad");
+  if(r.overdue){pillC.classList.add("c-bad"); eatC.classList.add("c-bad"); pillEl.classList.add("c-bad");}
+  else{pillC.classList.add((pillMs<=2*H&&pillMs>0)?"c-warn":"c-ok"); eatC.classList.add((cutMs<=0)?"c-bad":((pillMs<=2*H&&pillMs>0)?"c-warn":"c-ok"));}
+
+  $("pill_last").textContent   =showClock(r.lp);
+  $("pill_next").textContent   =showClock(r.nextP);
+  $("pill_planned").textContent=showClock(r.plannedP);
+  $("meal_last").textContent   =showClock(r.lm);
+  $("meal_next").textContent   =showClock(r.eatAfter);   // Eat After = LP+1h
+  $("meal_planned").textContent=showClock(r.eatBefore);  // Eat Before = NP−2h
+
+  const s=$("status"); s.classList.remove("ok","warn","bad");
+  if(r.overdue){s.classList.add("bad"); s.textContent=`Pill overdue • do not eat • take pill now • Eat after ${showClock(nowTS()+NO_EAT_1H)}`;}
+  else if((r.cutoff!=null)&& nowTS()>=r.cutoff){s.classList.add("bad"); s.textContent="Do not eat now";}
+  else if(r.nextP!=null && (r.nextP-nowTS())<=2*H){s.classList.add("warn"); s.textContent="Pill soon • stop eating before cutoff";}
+  else{s.classList.add("ok"); s.textContent="On target (+8 h) • Eat OK now";}
+}
+
+function wire(){
+  $("btn_pill").onclick =()=>{LAST_PILL_TS=nowTS();pushHist("Pill");render();};
+  $("btn_meal").onclick =()=>{LAST_MEAL_TS=nowTS();pushHist("Meal");render();};
+  $("btn_update").onclick=()=>render();
+  $("btn_reset").onclick =()=>{LAST_PILL_TS=null;LAST_MEAL_TS=null;$("history").innerHTML="<span>—</span>";render();};
+
+  $("btn_edit_pill").onclick=()=>{const cur=LAST_PILL_TS?showClock(LAST_PILL_TS):"";const inp=prompt("Last Pill (HH or HH:MM)",cur);if(inp==null)return;const ts=parseClockInput(inp);if(ts!=null){LAST_PILL_TS=ts;pushHist("Edit Pill");render();}};
+  $("btn_edit_meal").onclick=()=>{const cur=LAST_MEAL_TS?showClock(LAST_MEAL_TS):"";const inp=prompt("Last Meal (HH or HH:MM)",cur);if(inp==null)return;const ts=parseClockInput(inp);if(ts!=null){LAST_MEAL_TS=ts;pushHist("Edit Meal");render();}};
+}
+
+document.addEventListener("DOMContentLoaded",()=>{wire();render(); if('serviceWorker'in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});} });
+</script>
+</body>
+</html>
