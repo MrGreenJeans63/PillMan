@@ -195,21 +195,38 @@ function render(){
   const r=plan();
 
   // top clocks
+  const now = nowTS();
+  const postPillLock = (LAST_PILL_TS != null) && (now < (LAST_PILL_TS + NO_EAT_1H));
   $("hud_pill").innerHTML = showClockHTML(r.nextP);
-  $("hud_eat").innerHTML  = showClockHTML(r.cutoff);
+  if (postPillLock) {
+    // show a warning hint instead of the cutoff during the first hour after pill
+    $("hud_eat").innerHTML = `Eat\u00A0Soon\u00A0(${showClock(LAST_PILL_TS + NO_EAT_1H)})`;
+  } else {
+    $("hud_eat").innerHTML = showClockHTML(r.cutoff);
+  }
 
   // colors
-  const t=nowTS();
+  const t = now; // reuse the same now we computed above
   const pillMs = r.nextP ? (r.nextP - t) : 0;
   const cutMs  = r.cutoff ? (r.cutoff - t) : 0;
-  const pillEl = $("hud_pill"), eatEl=$("hud_eat");
-  const pillC  = pillEl.parentElement, eatC=eatEl.parentElement;
+  const pillEl = $("hud_pill"), eatEl = $("hud_eat");
+  const pillC  = pillEl.parentElement,   eatC  = eatEl.parentElement;
   [pillC,eatC].forEach(c=>c.classList.remove("c-ok","c-warn","c-bad"));
   pillEl.classList.remove("c-bad");
-  if (r.overdue){ pillC.classList.add("c-bad"); eatC.classList.add("c-bad"); pillEl.classList.add("c-bad"); }
-  else{
-    pillC.classList.add((pillMs<=2*H && pillMs>0)?"c-warn":"c-ok");
-    eatC.classList.add((cutMs<=0)?"c-bad":((pillMs<=2*H && pillMs>0)?"c-warn":"c-ok"));
+
+  if (r.overdue) {
+    // missed pill: both tiles red
+    pillC.classList.add("c-bad");
+    eatC.classList.add("c-bad");
+    pillEl.classList.add("c-bad");
+  } else if (postPillLock) {
+    // within 1h after pill: right tile is yellow “Eat Soon …”, left tile normal unless also near cutoff
+    pillC.classList.add((pillMs<=2*H && pillMs>0) ? "c-warn" : "c-ok");
+    eatC.classList.add("c-warn");
+  } else {
+    // normal window: warn as we approach cutoff, otherwise ok
+    pillC.classList.add((pillMs<=2*H && pillMs>0) ? "c-warn" : "c-ok");
+    eatC.classList.add((cutMs<=0) ? "c-bad" : ((pillMs<=2*H && pillMs>0) ? "c-warn" : "c-ok"));
   }
 
   // grid times
@@ -221,16 +238,24 @@ function render(){
   $("meal_planned").textContent = showClock(r.eatBefore);   // Eat Before = NP−2h
 
   // status
-  const s=$("status"); s.classList.remove("ok","warn","bad");
-  if (r.overdue){
+  const s = $("status"); s.classList.remove("ok","warn","bad");
+  const postPillLock = (LAST_PILL_TS != null) && (now < (LAST_PILL_TS + NO_EAT_1H));
+
+  if (r.overdue) {
+    s.addEventListener; s.classList.add("bad");
+    s.textContent = `Pill overdue • do not eat • take pill now • Eat after ${showClock(now + NO_EAT_1H)}`;
+  } else if (postPillLock) {
     s.classList.add("bad");
-    s.textContent = `Pill overdue • do not eat • take pill now • Eat after ${showClock(nowTS()+NO_EAT_1H)}`;
-  } else if (cutMs<=0) {
-    s.classList.add("bad"); s.textContent="Do not eat now";
-  } else if (pillMs<=2*H) {
-    s.classList.add("warn"); s.textContent="Pill soon • stop eating before cutoff";
+    s.textContent = `Do not eat now • wait until ${showClock(LAST_PILL_TS + NO_EAT_1H)}`;
+  } else if ((r.cutoff ? (r.cutoff - now) : 0) <= 0) {
+    s.classList.add("bad");
+    s.textContent = "Do not eat now";
+  } else if ((r.nextP ? (r.nextP - now) : 0) <= 2*H) { // keep as-is; change to 3*H if desired
+    s.classList.add("warn");
+    s.textContent = "Pill soon • stop eating before cutoff";
   } else {
-    s.classList.add("ok"); s.textContent="On target (+8 h) • Eat OK now";
+    s.classList.add("ok");
+    s.textContent = "On target (+8 h) • Eat OK now";
   }
 
   webSave(); // persist after every render
