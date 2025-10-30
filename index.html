@@ -88,15 +88,15 @@
   }
 
   /* info column (stacked, all white thin) */
-  .info{display:grid; row-gap:6px; justify-items:center}
+  .info{display:grid; row-gap:4px; justify-items:center; margin-bottom:8px;}
   .info .val{font-size:clamp(27px,7.5vw,42px); font-weight:300}
   .caps{font-size:13px; color:var(--white); letter-spacing:.4px; text-transform:uppercase}
   .info .ipair { display:flex; flex-direction:column; align-items:center; text-align:center; }
   .info .ipair + .ipair { margin-top: 6px; }
-  .info .row{display:flex; justify-content:center; align-items:flex-start; gap:16px;}
+  .info .row{display:flex; justify-content:space-evenly; align-items:center; gap:10px; width:100%;}
 
   /* status */
-  .status{font-size:13px; text-align:center; color:var(--sub); font-weight:600}
+  .status{font-size:13px; text-align:center; color:var(--sub); font-weight:600; margin-top:4px; margin-bottom:12px;}
 
   /* controls */
   .controls{display:grid; grid-template-columns:1fr 1fr; gap:12px; align-self:end}
@@ -153,3 +153,5 @@
   </main>
 </body>
 </html>
+  .info .row .val{font-size:clamp(23px,6vw,36px); color:#4ce07a;}
+  .info .row .caps{color:#4ce07a;}
