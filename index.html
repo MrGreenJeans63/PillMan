@@ -2,279 +2,160 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
 <title>Pill Man</title>
-
-<!-- PWA / iOS -->
-<link rel="manifest" href="manifest.json">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
-<meta name="apple-mobile-web-app-title" content="Pill Man">
 <meta name="theme-color" content="#0b0f14"/>
 
 <style>
-/* Canvas */
-body{
-  margin:0; background:#0b0f14; color:#e5f0ff;
-  font-family:-apple-system, BlinkMacSystemFont, "SF Pro Rounded", "Segoe UI", Arial, sans-serif;
-  display:flex; justify-content:center; align-items:center; height:100vh;
-  -webkit-text-size-adjust:100%;
-}
-.wrap{
-  width:min(92vw,600px);
-  background:#0e141b; border:1px solid #1a2c40; border-radius:20px;
-  padding:14px; display:flex; flex-direction:column; gap:10px;
-  box-shadow:0 0 0 1px #0a121b inset;
-}
+  /* ===== Canvas (portrait iPhone) ===== */
+  :root{
+    --bg1:#0b0f14;
+    --bg2:#111720;
+    --text:#e5f0ff;
+    --sub:#8aa0b3;
+    --yel:#ffb74d;
+    --grn:#4ce07a;
+    --red:#ff4d4d;
+    --wrap-max:480px;
+    --wrap-min:340px;
+    --gut:16px;   /* side gutters */
+    --gap:12px;   /* row gaps */
+    --radius:20px;
+  }
+  html,body{height:100%}
+  body{
+    margin:0;
+    background:linear-gradient(180deg,var(--bg1),var(--bg2));
+    color:var(--text);
+    font-family:-apple-system, BlinkMacSystemFont, "SF Pro Rounded", "SF Pro Text", system-ui, Arial, sans-serif;
+    -webkit-font-smoothing:antialiased;
+    -webkit-text-size-adjust:100%;
+    display:flex; justify-content:center; align-items:stretch;
+    min-height:100svh; /* avoid URL-bar jumps on iOS */
+  }
+  .wrap{
+    width:clamp(var(--wrap-min), 92vw, var(--wrap-max));
+    padding:
+      calc(18px + env(safe-area-inset-top))
+      calc(var(--gut) + env(safe-area-inset-right))
+      calc(22px + env(safe-area-inset-bottom))
+      calc(var(--gut) + env(safe-area-inset-left));
+    display:grid;
+    grid-template-rows: min-content 0.42fr min-content min-content 0.18fr;
+    row-gap:var(--gap);
+  }
 
-/* HUD top row */
-.hud{display:grid; grid-template-columns:1fr 1fr; gap:10px}
-.card{
-  display:grid; grid-template-columns:34px 1fr; align-items:center;
-  height:120px; background:#0b1622; border:1px solid #1a2c40; border-radius:20px; overflow:hidden;
-}
-.rail{
-  writing-mode:vertical-rl; transform:rotate(180deg);
-  display:flex; align-items:center; justify-content:center;
-  font-weight:700; font-size:11px; letter-spacing:.6px; color:#8aa0b3;
-}
-.clock{
-  display:flex; align-items:center; justify-content:center;
-  font-weight:900; font-size:58px; line-height:.9; white-space:nowrap;
-}
-.clock small{font-size:.36em}
-#hud_pill{color:#ffb74d}              /* yellow */
-#hud_pill.c-bad{color:#ff4d4d!important} /* overdue */
-#hud_eat{color:#ff4d4d}               /* red by default */
+  /* ===== Header ===== */
+  .hdr{
+    display:flex; flex-direction:column; align-items:center; gap:6px;
+  }
+  .title{font-weight:900; letter-spacing:.6px; font-size:14px; color:var(--text)}
+  .state{font-weight:700; font-size:13px; color:var(--sub)}
 
-/* State color helpers for tile borders/text accents (not the main values) */
-.c-ok{color:#4ce07a} .c-warn{color:#ffb74d} .c-bad{color:#ff4d4d}
+  /* ===== Primary clocks (no boxes; just spacing) ===== */
+  .primary{
+    display:grid; grid-template-columns:1fr 1fr; column-gap:14px; align-items:center;
+  }
+  .block{display:flex; flex-direction:column; align-items:center; gap:8px}
+  .label{font-weight:700; font-size:12px; letter-spacing:.6px; color:var(--sub)}
+  .time{
+    font-weight:900;
+    font-size:clamp(48px, 14vw, 80px);
+    line-height:.9; white-space:nowrap;
+  }
+  .time small{font-size:.36em}
 
-/* Grid 3×2 */
-.kpis{display:grid; grid-template-columns:repeat(3,1fr); gap:8px}
-.kcard{
-  position:relative; height:68px; background:#0b1622;
-  border:1px solid #1a2c40; border-radius:16px; overflow:hidden;
-}
-.knum{
-  position:absolute; top:8px; left:0; right:0; display:flex; justify-content:center;
-  font-weight:900; font-size:28px; line-height:1; white-space:nowrap;
-}
-.kcap{
-  position:absolute; bottom:5px; left:0; right:0; text-align:center;
-  font-weight:700; font-size:14px; color:#9bb0c4;
-}
-/* Row colors */
-#pill_last,#pill_next,#pill_since{color:#ffb74d}  /* yellow */
-#meal_last,#meal_next,#meal_planned{color:#4ce07a} /* green */
+  /* color intent for values (purely visual in this mock) */
+  .pill  .time{color:var(--yel)}
+  .cut   .time{color:var(--red)}
+  .soon  .time{color:var(--grn)} /* used when label reads EAT SOON */
 
-/* Status */
-.status{
-  background:#101820; border:1px solid #1a2c40; border-radius:12px;
-  padding:8px 10px; text-align:center; font-weight:700; font-size:13px;
-}
-.status.ok{color:#4ce07a} .status.warn{color:#ffb74d} .status.bad{color:#ff4d4d}
+  /* ===== Info row ===== */
+  .info{
+    display:flex; flex-direction:column; align-items:center; gap:6px;
+  }
+  .info-values{
+    display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; justify-content:center;
+    font-size:clamp(18px, 4.8vw, 28px); font-weight:900;
+  }
+  .info-values .since{color:var(--yel)}
+  .info-values .eat{color:var(--grn)}
+  .info-caps{
+    display:flex; gap:28px; justify-content:center;
+    font-size:14px; font-weight:700; color:var(--sub);
+  }
 
-/* Controls */
-.controls{display:flex; gap:12px; margin-top:4px}
-button{
-  flex:1; height:46px; border-radius:12px; border:none; font-weight:800; font-size:15px; cursor:pointer
-}
-.btn-pill{background:#ffb74d; color:#0b0f14}
-.btn-meal{background:#ff4d4d; color:#fff}
+  /* ===== Status ===== */
+  .status{
+    text-align:center; font-weight:800; font-size:13px;
+    color:var(--grn); /* mock default = OK */
+    padding:8px 10px;
+  }
+  .status.ok{color:var(--grn)}
+  .status.warn{color:var(--yel)}
+  .status.bad{color:var(--red)}
 
-/* Mini edits (optional) */
-.controls-mini{display:flex; gap:12px}
-.btn-mini{flex:1; height:26px; border-radius:10px; border:none; font-weight:700; font-size:12px; opacity:.95}
-.btn-mini.pill{background:#ffb74d; color:#0b0f14}
-.btn-mini.meal{background:#ff4d4d; color:#fff}
+  /* ===== Controls (bottom reach zone) ===== */
+  .controls{
+    align-self:end;
+    display:grid; grid-template-columns:1fr 1fr; gap:12px;
+  }
+  .btn{
+    height:46px; border:none; border-radius:12px; cursor:pointer;
+    font-weight:900; font-size:15px;
+  }
+  .btn-pill{background:var(--yel); color:#0b0f14}
+  .btn-meal{background:var(--red); color:#fff}
+
+  /* Small print footer (optional; hidden in mock) */
+  .foot{display:none}
 </style>
 </head>
 <body>
-<div class="wrap">
+  <main class="wrap">
 
-  <!-- TOP HUD -->
-  <div class="hud">
-    <div class="card">
-      <div class="rail">NEXT PILL</div>
-      <div class="clock" id="hud_pill">—:— <small>—M</small></div>
-    </div>
-    <div class="card">
-      <div class="rail" id="hud_eat_label">STOP EATING</div>
-      <div class="clock" id="hud_eat">—:— <small>—M</small></div>
-    </div>
-  </div>
+    <!-- Header -->
+    <header class="hdr">
+      <div class="title">PILL MAN</div>
+      <div class="state">Ready</div> <!-- Overdue/Ready/Locked – runtime text -->
+    </header>
 
-  <!-- GRID 3×2 -->
-  <div class="kpis">
-    <div class="kcard"><div class="knum" id="pill_last">—</div><div class="kcap">Pill — Last</div></div>
-    <div class="kcard"><div class="knum" id="pill_next">—</div><div class="kcap">Pill — Next</div></div>
-    <div class="kcard"><div class="knum" id="pill_since">—</div><div class="kcap">Hours Since Pill</div></div>
+    <!-- Primary zone: two big clocks -->
+    <section class="primary">
+      <div class="block pill">
+        <div class="label">NEXT PILL</div>
+        <div class="time">12:30 <small>PM</small></div>
+      </div>
+      <div class="block cut">
+        <div class="label" id="eatLabel">STOP EATING</div> <!-- changes to EAT SOON during post-pill hour -->
+        <div class="time">10:30 <small>AM</small></div>     <!-- shows Eat Before; green when EAT SOON -->
+      </div>
+    </section>
 
-    <div class="kcard"><div class="knum" id="meal_last">—</div><div class="kcap">Meal — Last</div></div>
-    <div class="kcard"><div class="knum" id="meal_next">—</div><div class="kcap">Eat After</div></div>
-    <div class="kcard"><div class="knum" id="meal_planned">—</div><div class="kcap">Eat Before</div></div>
-  </div>
+    <!-- Info row: Since / After / Before -->
+    <section class="info">
+      <div class="info-values">
+        <span class="since">1.7&nbsp;h</span>
+        <span>•</span>
+        <span class="eat">1:30&nbsp;PM</span>
+        <span>•</span>
+        <span class="eat">10:30&nbsp;AM</span>
+      </div>
+      <div class="info-caps">
+        <span>Since</span><span>After</span><span>Before</span>
+      </div>
+    </section>
 
-  <!-- STATUS -->
-  <div class="status ok" id="status">—</div>
+    <!-- Status line -->
+    <div class="status ok">On target (+8 h) • Eat OK now</div>
 
-  <!-- CONTROLS -->
-  <div class="controls">
-    <button class="btn-pill" id="btn_pill">Log Pill</button>
-    <button class="btn-meal" id="btn_meal">Log Meal</button>
-  </div>
-  <div class="controls-mini">
-    <button class="btn-mini pill" id="btn_edit_pill">Edit Pill</button>
-    <button class="btn-mini meal" id="btn_edit_meal">Edit Meal</button>
-  </div>
-</div>
+    <!-- Controls -->
+    <section class="controls">
+      <button class="btn btn-pill">LOG PILL</button>
+      <button class="btn btn-meal">LOG MEAL</button>
+    </section>
 
-<script>
-/* ===== helpers ===== */
-const $=id=>document.getElementById(id);
-const two=n=>String(n).padStart(2,"0");
-const H=3600e3;
-const nowTS=()=>Date.now();
-const showClockHTML=ts=>{
-  if(ts==null)return"—"; const d=new Date(ts); let h=d.getHours(),m=d.getMinutes();
-  const ap=h>=12?"PM":"AM"; h=h%12||12; return `${h}:${two(m)} <small>${ap}</small>`;
-};
-const showClock=ts=>{
-  if(ts==null)return"—"; const d=new Date(ts); let h=d.getHours(),m=d.getMinutes();
-  const ap=h>=12?"PM":"AM"; h=h%12||12; return `${h}:${two(m)} ${ap}`;
-};
-function parseClockInput(t){
-  if(!t)return null; const s=String(t).trim(); if(!s)return null; const d=new Date();
-  if(s.includes(":")){ const[H,M="0"]=s.split(":"); const hh=+H, mm=+M; if(isNaN(hh)||isNaN(mm))return null; d.setHours(hh,mm,0,0); return d.getTime(); }
-  if(s.includes(".")){ const f=+s; if(isNaN(f))return null; const hh=Math.trunc(f), mm=Math.round((f-hh)*60); d.setHours(hh,mm,0,0); return d.getTime(); }
-  const hh=+s; if(isNaN(hh))return null; d.setHours(hh,0,0,0); return d.getTime();
-}
-function pushHist(label){
-  // If you want a history panel later, keep entries; not displayed in UI now
-  const d=new Date(), h=two(d.getHours()), m=two(d.getMinutes());
-  const entry = `${h}:${m}  ${label}`;
-  // (We still persist LAST_*_TS; history can be stored if needed)
-}
-
-/* ===== state ===== */
-let LAST_PILL_TS = null;
-let LAST_MEAL_TS = null;
-
-/* rules */
-const GAP_PILL=8*H, NO_EAT_1H=1*H, PRE_PILL_2H=2*H;
-
-/* ===== plan (hard +8h; overdue doesn’t roll) ===== */
-function plan(){
-  const t=nowTS();
-  if(LAST_PILL_TS==null)
-    return {lp:null,lm:LAST_MEAL_TS,nextP:null,cutoff:null,eatAfter:null,eatBefore:null,plannedP:null,overdue:false};
-  const lp=LAST_PILL_TS;
-  const dueP     = lp + GAP_PILL;     // true due time today
-  const nextP    = dueP;
-  const overdue  = t > dueP;
-  const eatAfter = lp + NO_EAT_1H;    // 1h after pill
-  const eatBefore= dueP - PRE_PILL_2H;// 2h before pill
-  let plannedP   = lp + 16*H; if(plannedP <= t) plannedP += 24*H; // display only
-  const cutoff   = eatBefore;
-  return {lp,lm:LAST_MEAL_TS,nextP,cutoff,eatAfter,eatBefore,plannedP,overdue};
-}
-
-/* ===== render ===== */
-function render(){
-  const r=plan();
-  const now=nowTS();
-  const postPillLock = (LAST_PILL_TS!=null) && (now < LAST_PILL_TS + NO_EAT_1H);
-
-  // TOP CLOCKS
-  const eatLabelEl = document.getElementById('hud_eat_label');
-  $("hud_pill").innerHTML = showClockHTML(r.nextP);
-  if(postPillLock){
-    if(eatLabelEl) eatLabelEl.textContent = "EAT SOON";
-    $("hud_eat").innerHTML = `Eat\u00A0Soon\u00A0(${showClock(r.eatBefore)})`;
-    $("hud_eat").style.color = "#4ce07a";  // green during first hour
-  }else{
-    if(eatLabelEl) eatLabelEl.textContent = "STOP EATING";
-    $("hud_eat").innerHTML = showClockHTML(r.cutoff);
-    $("hud_eat").style.color = "";         // revert to CSS (red)
-  }
-
-  // TILE STATE COLORS
-  const pillMs = r.nextP ? (r.nextP - now) : 0;
-  const cutMs  = r.cutoff ? (r.cutoff - now) : 0;
-  const pillEl = $("hud_pill"), eatEl = $("hud_eat");
-  const pillC  = pillEl.parentElement, eatC = eatEl.parentElement;
-  [pillC,eatC].forEach(c=>c.classList.remove("c-ok","c-warn","c-bad"));
-  pillEl.classList.remove("c-bad");
-  if(r.overdue){
-    pillC.classList.add("c-bad"); eatC.classList.add("c-bad"); pillEl.classList.add("c-bad");
-  }else if(postPillLock){
-    pillC.classList.add((pillMs<=2*H && pillMs>0) ? "c-warn" : "c-ok");
-    eatC.classList.add("c-ok");
-  }else{
-    pillC.classList.add((pillMs<=2*H && pillMs>0) ? "c-warn" : "c-ok");
-    eatC.classList.add((cutMs<=0) ? "c-bad" : ((pillMs<=3*H && pillMs>0) ? "c-warn" : "c-ok"));
-  }
-
-  // GRID TIMES
-  $("pill_last").textContent  = showClock(r.lp);
-  $("pill_next").textContent  = showClock(r.nextP);
-  // Hours since pill (1 decimal)
-  $("pill_since").textContent = (r.lp==null) ? "—" : `${Math.max(0,(now-r.lp)/H).toFixed(1)} h`;
-
-  $("meal_last").textContent  = showClock(r.lm);
-  $("meal_next").textContent  = showClock(r.eatAfter);
-  $("meal_planned").textContent = showClock(r.eatBefore);
-
-  // STATUS
-  const s=$("status"); s.classList.remove("ok","warn","bad");
-  if(r.overdue){
-    s.classList.add("bad");
-    s.textContent = `Pill overdue • do not eat • take pill now • Eat after ${showClock(now + NO_EAT_1H)}`;
-  }else if(postPillLock){
-    s.classList.add("bad");
-    s.textContent = `Do not eat now • wait until ${showClock(LAST_PILL_TS + NO_EAT_1H)}`;
-  }else if(cutMs<=0){
-    s.classList.add("bad"); s.textContent="Do not eat now";
-  }else if(pillMs<=3*H){
-    s.classList.add("warn"); s.textContent="Pill soon • 1h to eat";
-  }else{
-    s.classList.add("ok"); s.textContent="On target (+8 h) • Eat OK now";
-  }
-
-  saveLocal();
-}
-
-/* ===== controls ===== */
-function wire(){
-  $("btn_pill").onclick = ()=>{ LAST_PILL_TS=nowTS(); pushHist("Pill"); render(); };
-  $("btn_meal").onclick = ()=>{ LAST_MEAL_TS=nowTS(); pushHist("Meal"); render(); };
-
-  const eP=$("btn_edit_pill");
-  if(eP) eP.onclick=()=>{ const cur=LAST_PILL_TS?showClock(LAST_PILL_TS):""; const inp=prompt("Last Pill (HH or HH:MM or 4.5)",cur); if(inp==null)return; const ts=parseClockInput(inp); if(ts!=null){ LAST_PILL_TS=ts; pushHist("Edit Pill"); render(); } };
-  const eM=$("btn_edit_meal");
-  if(eM) eM.onclick=()=>{ const cur=LAST_MEAL_TS?showClock(LAST_MEAL_TS):""; const inp=prompt("Last Meal (HH or HH:MM or 4.5)",cur); if(inp==null)return; const ts=parseClockInput(inp); if(ts!=null){ LAST_MEAL_TS=ts; pushHist("Edit Meal"); render(); } };
-}
-
-/* ===== autosave / autoload ===== */
-const LS_KEY="pillman_v1";
-function saveLocal(){
-  try{ localStorage.setItem(LS_KEY, JSON.stringify({V:1, LAST_PILL_TS, LAST_MEAL_TS})); }catch(e){}
-}
-function loadLocal(){
-  try{
-    const raw=localStorage.getItem(LS_KEY); if(!raw) return;
-    const d=JSON.parse(raw);
-    if(d&&d.V===1){ LAST_PILL_TS=d.LAST_PILL_TS??null; LAST_MEAL_TS=d.LAST_MEAL_TS??null; }
-  }catch(e){}
-}
-
-/* ===== boot ===== */
-document.addEventListener("DOMContentLoaded", ()=>{
-  loadLocal(); wire(); render();
-  // quiet refresh to keep times fresh
-  setInterval(render, 15000);
-});
-</script>
+    <div class="foot"></div>
+  </main>
 </body>
 </html>
