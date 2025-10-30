@@ -96,15 +96,33 @@
 
   /* info column (stacked, all white thin) */
   .info{display:grid; row-gap:4px; justify-items:center; margin-bottom:4px;}
-  .info .val{font-size:clamp(25px,7vw,38px); font-weight:300}
-  .caps{font-size:13px; color:var(--white); letter-spacing:.4px; text-transform:uppercase}
+  .info .val{font-size:clamp(23px,6.5vw,34px); font-weight:300}
+  .caps{
+    font-size:11px;           /* match focus labels */
+    color:var(--white);       /* white captions */
+    letter-spacing:.5px;
+    text-transform:uppercase;
+  }
   .info .ipair { display:flex; flex-direction:column; align-items:center; text-align:center; }
   .info .ipair + .ipair { margin-top: 6px; }
+  /*
   .info .row{display:flex; justify-content:space-evenly; align-items:center; gap:10px; width:100%;}
   .info .row:nth-child(1) { justify-content:flex-start; gap:20px; width:100%; }
   .info .row:nth-child(1) .ipair { align-items:flex-start; text-align:left; }
   .info .row:nth-child(2) { justify-content:flex-end; gap:20px; width:100%; }
   .info .row:nth-child(2) .ipair { align-items:flex-end; text-align:right; }
+  */
+  /* Two-column grid per row: left/right aligned to screen edges; each ipair centers its own caption under data */
+  .info .row{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    align-items:center;
+    width:100%;
+  }
+  .info .row .ipair{ display:flex; flex-direction:column; align-items:center; text-align:center; }
+  .info .row .ipair:first-child{ justify-self:start; }
+  .info .row .ipair:last-child{  justify-self:end;   }
+
   .info #eat_again { color: #4ce07a; }
   .info #eat_again + .caps { color: var(--white); }
   .info #last_meal { color: #4ce07a; }
