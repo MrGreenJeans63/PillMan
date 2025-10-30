@@ -49,14 +49,16 @@
     align-items: center;
     justify-content: center;
     text-align: center;
-    gap: 12px;
+    gap: 6px; /* smaller spacing */
     margin-top: 6vh; /* breathing room */
   }
   .focus .label {
+    order: 2;
     color: #8aa0b3;          /* subtle gray */
-    font-size: 12px;
-    letter-spacing: .6px;
+    font-size: 11px;
+    letter-spacing: .5px;
     font-weight: 600;
+    margin-top: 4px;
   }
   .focus .time {
     line-height: .9;
@@ -65,14 +67,14 @@
   }
   .focus .time.nextpill {
     color: #ffffff;           /* pure white */
-    font-size: clamp(60px, 18vw, 96px); /* larger primary */
+    font-size: clamp(78px, 22vw, 120px); /* larger primary */
   }
   .focus .time.nextpill small {
     font-size: .36em;
   }
   .focus .time.eatleft {
     color: #4ce07a;           /* bright green */
-    font-size: clamp(48px, 14vw, 80px); /* ~20% smaller */
+    font-size: clamp(58px, 18vw, 96px); /* ~20% smaller */
     margin-top: 4px;
   }
 
@@ -97,11 +99,11 @@
 
     <!-- STACKED FOCUS group -->
     <section class="focus">
-      <div class="label">NEXT PILL</div>
       <div class="time nextpill">12:30 <small>PM</small></div>
+      <div class="label">NEXT PILL</div>
 
-      <div class="label">HOURS LEFT TO EAT</div>
       <div class="time eatleft">3.4 h</div>
+      <div class="label">HOURS LEFT TO EAT</div>
     </section>
 
     <!-- INFO (stacked) -->
