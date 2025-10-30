@@ -105,6 +105,9 @@
   .info #eat_between, .info #eat_between + .caps {
     color: #4ce07a;
   }
+  .info #eat_again, .info #eat_again + .caps {
+    color: #4ce07a;
+  }
   .info .row:first-child { justify-content: space-evenly; gap: 20px; width: 100%; }
   .info #eat_between { color: var(--white); }
 
@@ -118,7 +121,7 @@
     background:#1b2a3a; color:var(--white); font-weight:700; font-size:15px; letter-spacing:.4px;
   }
 
-  .info { margin-top: 6vh; }
+  .info { margin-top: 4vh; }
   .controls { margin-bottom: 8vh; }
 </style>
 </head>
@@ -149,9 +152,15 @@
           <div class="caps">Last Pill</div>
         </div>
       </div>
-      <div class="ipair">
-        <div class="val" id="last_meal">—</div>
-        <div class="caps">Last Meal</div>
+      <div class="row">
+        <div class="ipair">
+          <div class="val" id="last_meal">—</div>
+          <div class="caps">Last Meal</div>
+        </div>
+        <div class="ipair">
+          <div class="val" id="eat_again">—</div>
+          <div class="caps">Eat Again</div>
+        </div>
       </div>
       <div class="ipair">
         <div class="val" id="eat_between">—</div>
@@ -169,11 +178,11 @@
       <button class="btn" id="btn_edit_meal">EDIT MEAL</button>
     </section>
   </main>
-</main>
 <script>
 (function(){
   const $ = id => document.getElementById(id);
   const H = 3600e3;
+  const NO_EAT_1H = 3600e3;
   const two = n => String(n).padStart(2,'0');
   const nowTS = () => Date.now();
   const LS_KEY = 'pillman_v2';
@@ -211,7 +220,7 @@
   function plan(){
     const now = nowTS();
     if(LAST_PILL_TS==null){
-      return { now, lp:null, lm:LAST_MEAL_TS, nextP:null, eatAfter:null, eatBefore:null, overdue:false, hoursSince:null, hoursLeft:null };
+      return { now, lp:null, lm:LAST_MEAL_TS, nextP:null, eatAfter:null, eatBefore:null, overdue:false, hoursSince:null, hoursLeft:null, eatAgainAt:null };
     }
     const lp = LAST_PILL_TS;
     const nextP = lp + 8*H;            // hard +8h (no auto-roll)
@@ -220,7 +229,23 @@
     const overdue   = now > nextP;
     const hoursSince= (now - lp)/H;
     const hoursLeft = Math.max(0, (eatBefore - now)/H);
-    return { now, lp, lm:LAST_MEAL_TS, nextP, eatAfter, eatBefore, overdue, hoursSince, hoursLeft };
+
+    // Next time you can eat again (clock time)
+    let eatAgainAt = null;
+    if (lp != null) {
+      if (now < eatAfter) {
+        eatAgainAt = eatAfter; // still in 1h lock
+      } else if (now < eatBefore) {
+        // inside eat window: next opportunity if you miss is after next pill + 1h
+        eatAgainAt = nextP + NO_EAT_1H;
+      } else {
+        // after cutoff, next opportunity is after taking the pill + 1h
+        const candidate = nextP + NO_EAT_1H;
+        eatAgainAt = Math.max(now + NO_EAT_1H, candidate);
+      }
+    }
+
+    return { now, lp, lm:LAST_MEAL_TS, nextP, eatAfter, eatBefore, overdue, hoursSince, hoursLeft, eatAgainAt };
   }
 
   function render(){
@@ -235,6 +260,16 @@
     if($('since_pill')) $('since_pill').textContent = (r.hoursSince==null? '—' : `${Math.max(0,r.hoursSince).toFixed(1)} h`);
     if($('last_pill')) $('last_pill').textContent = showClock(r.lp);
     if($('last_meal')) $('last_meal').textContent = showClock(r.lm);
+    if($("eat_again")) {
+      const eatAgainEl = $("eat_again");
+      eatAgainEl.textContent = showClock(r.eatAgainAt);
+      // highlight when the window has ≤ 1.0 h left and still > 0
+      if (r.hoursLeft != null && r.hoursLeft <= 1 && r.hoursLeft > 0) {
+        eatAgainEl.style.color = '#ffb74d'; // yellow warn
+      } else {
+        eatAgainEl.style.color = '#4ce07a'; // default green for food data
+      }
+    }
     if($('eat_between')) $('eat_between').textContent = `${showClock(r.eatAfter)} - ${showClock(r.eatBefore)}`;
 
     // status
