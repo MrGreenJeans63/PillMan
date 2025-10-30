@@ -95,13 +95,15 @@
   }
 
   /* info column (stacked, all white thin) */
-  .info{display:grid; row-gap:4px; justify-items:center; margin-bottom:8px;}
+  .info{display:grid; row-gap:4px; justify-items:center; margin-bottom:4px;}
   .info .val{font-size:clamp(27px,7.5vw,42px); font-weight:300}
   .caps{font-size:13px; color:var(--white); letter-spacing:.4px; text-transform:uppercase}
   .info .ipair { display:flex; flex-direction:column; align-items:center; text-align:center; }
   .info .ipair + .ipair { margin-top: 6px; }
   .info .row{display:flex; justify-content:space-evenly; align-items:center; gap:10px; width:100%;}
   .info .row .val, .info .row .caps { color: #4ce07a; }
+  .info .row:first-child { justify-content: space-evenly; gap: 20px; width: 100%; }
+  .info #eat_between { color: var(--white); }
 
   /* status */
   .status{font-size:16px; text-align:center; color:var(--sub); font-weight:600; margin-top:4px; margin-bottom:12px;}
@@ -113,7 +115,7 @@
     background:#1b2a3a; color:var(--white); font-weight:700; font-size:15px; letter-spacing:.4px;
   }
 
-  .info { margin-top: 8vh; }
+  .info { margin-top: 6vh; }
   .controls { margin-bottom: 8vh; }
 </style>
 </head>
@@ -134,23 +136,23 @@
 
     <!-- INFO (stacked) -->
     <section class="info">
-      <div class="ipair">
-        <div class="val" id="since_pill">—</div>
-        <div class="caps">Since Pill</div>
+      <div class="row">
+        <div class="ipair">
+          <div class="val" id="since_pill">—</div>
+          <div class="caps">Since Pill</div>
+        </div>
+        <div class="ipair">
+          <div class="val" id="last_pill">—</div>
+          <div class="caps">Last Pill</div>
+        </div>
       </div>
       <div class="ipair">
         <div class="val" id="last_meal">—</div>
         <div class="caps">Last Meal</div>
       </div>
-      <div class="row">
-        <div class="ipair">
-          <div class="val" id="eat_after">—</div>
-          <div class="caps">Eat After</div>
-        </div>
-        <div class="ipair">
-          <div class="val" id="eat_before">—</div>
-          <div class="caps">Eat Before</div>
-        </div>
+      <div class="ipair">
+        <div class="val" id="eat_between">—</div>
+        <div class="caps">Eat Between</div>
       </div>
     </section>
 
@@ -228,9 +230,9 @@
 
     // info values
     if($('since_pill')) $('since_pill').textContent = (r.hoursSince==null? '—' : `${Math.max(0,r.hoursSince).toFixed(1)} h`);
+    if($('last_pill')) $('last_pill').textContent = showClock(r.lp);
     if($('last_meal')) $('last_meal').textContent = showClock(r.lm);
-    if($('eat_after')) $('eat_after').textContent = showClock(r.eatAfter);
-    if($('eat_before')) $('eat_before').textContent = showClock(r.eatBefore);
+    if($('eat_between')) $('eat_between').textContent = `${showClock(r.eatAfter)} - ${showClock(r.eatBefore)}`;
 
     // status
     const s = $('status');
