@@ -53,12 +53,11 @@
     margin-top: 6vh; /* breathing room */
   }
   .focus .label {
-    order: 2;
-    color: #8aa0b3;          /* subtle gray */
+    color: #8aa0b3;
     font-size: 11px;
     letter-spacing: .5px;
     font-weight: 600;
-    margin-top: 4px;
+    margin-top: 4px; /* close to its value */
   }
   .focus .time {
     line-height: .9;
@@ -77,11 +76,23 @@
     font-size: clamp(58px, 18vw, 96px); /* ~20% smaller */
     margin-top: 4px;
   }
+  .focus .pair {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  .focus .pair + .pair {
+    margin-top: 24px; /* separate the two data/label sets */
+  }
 
   /* info column (stacked, all white thin) */
   .info{display:grid; row-gap:10px; justify-items:center}
   .info .val{font-size:clamp(18px,5vw,28px); font-weight:300}
   .caps{font-size:13px; color:var(--sub); letter-spacing:.4px; text-transform:uppercase}
+  .info .ipair { display:flex; flex-direction:column; align-items:center; text-align:center; }
+  .info .ipair + .ipair { margin-top: 12px; }
 
   /* status */
   .status{font-size:13px; text-align:center; color:var(--sub); font-weight:600}
@@ -99,23 +110,30 @@
 
     <!-- STACKED FOCUS group -->
     <section class="focus">
-      <div class="time nextpill">12:30 <small>PM</small></div>
-      <div class="label">NEXT PILL</div>
-
-      <div class="time eatleft">3.4 h</div>
-      <div class="label">HOURS LEFT TO EAT</div>
+      <div class="pair">
+        <div class="time nextpill">12:30 <small>PM</small></div>
+        <div class="label">NEXT PILL</div>
+      </div>
+      <div class="pair">
+        <div class="time eatleft">3.4 h</div>
+        <div class="label">HOURS LEFT TO EAT</div>
+      </div>
     </section>
 
     <!-- INFO (stacked) -->
     <section class="info">
-      <div class="val">1.7 h</div>
-      <div class="caps">Since Pill</div>
-
-      <div class="val">1:30 PM</div>
-      <div class="caps">Eat After</div>
-
-      <div class="val">10:30 AM</div>
-      <div class="caps">Eat Before</div>
+      <div class="ipair">
+        <div class="val">1.7 h</div>
+        <div class="caps">Since Pill</div>
+      </div>
+      <div class="ipair">
+        <div class="val">1:30 PM</div>
+        <div class="caps">Eat After</div>
+      </div>
+      <div class="ipair">
+        <div class="val">10:30 AM</div>
+        <div class="caps">Eat Before</div>
+      </div>
     </section>
 
     <div class="status">On target (+8 h) • Eat OK now</div>
