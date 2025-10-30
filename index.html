@@ -88,11 +88,12 @@
   }
 
   /* info column (stacked, all white thin) */
-  .info{display:grid; row-gap:10px; justify-items:center}
-  .info .val{font-size:clamp(18px,5vw,28px); font-weight:300}
-  .caps{font-size:13px; color:var(--sub); letter-spacing:.4px; text-transform:uppercase}
+  .info{display:grid; row-gap:6px; justify-items:center}
+  .info .val{font-size:clamp(27px,7.5vw,42px); font-weight:300}
+  .caps{font-size:13px; color:var(--white); letter-spacing:.4px; text-transform:uppercase}
   .info .ipair { display:flex; flex-direction:column; align-items:center; text-align:center; }
-  .info .ipair + .ipair { margin-top: 12px; }
+  .info .ipair + .ipair { margin-top: 6px; }
+  .info .row{display:flex; justify-content:center; align-items:flex-start; gap:16px;}
 
   /* status */
   .status{font-size:13px; text-align:center; color:var(--sub); font-weight:600}
@@ -127,12 +128,18 @@
         <div class="caps">Since Pill</div>
       </div>
       <div class="ipair">
-        <div class="val">1:30 PM</div>
-        <div class="caps">Eat After</div>
+        <div class="val">9:00 AM</div>
+        <div class="caps">Last Meal</div>
       </div>
-      <div class="ipair">
-        <div class="val">10:30 AM</div>
-        <div class="caps">Eat Before</div>
+      <div class="row">
+        <div class="ipair">
+          <div class="val">1:30 PM</div>
+          <div class="caps">Eat After</div>
+        </div>
+        <div class="ipair">
+          <div class="val">10:30 AM</div>
+          <div class="caps">Eat Before</div>
+        </div>
       </div>
     </section>
 
