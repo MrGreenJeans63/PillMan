@@ -69,12 +69,19 @@
     font-size: clamp(78px, 22vw, 120px); /* larger primary */
   }
   .focus .time.nextpill small {
-    font-size: .36em;
+    font-size: .25em;       /* 50% smaller */
+    vertical-align: top;
+    margin-left: -6px;      /* move closer (to the left) */
   }
   .focus .time.eatleft {
     color: #4ce07a;           /* bright green */
     font-size: clamp(58px, 18vw, 96px); /* ~20% smaller */
     margin-top: 4px;
+  }
+  .focus .time.eatleft small {
+    font-size: .25em;       /* same small scale as PM */
+    vertical-align: top;
+    margin-left: -6px;      /* match spacing */
   }
   .focus .pair {
     display: flex;
@@ -84,7 +91,7 @@
     text-align: center;
   }
   .focus .pair + .pair {
-    margin-top: 24px; /* separate the two data/label sets */
+    margin-top: 12px; /* separate the two data/label sets */
   }
 
   /* info column (stacked, all white thin) */
@@ -94,16 +101,20 @@
   .info .ipair { display:flex; flex-direction:column; align-items:center; text-align:center; }
   .info .ipair + .ipair { margin-top: 6px; }
   .info .row{display:flex; justify-content:space-evenly; align-items:center; gap:10px; width:100%;}
+  .info .row .val, .info .row .caps { color: #4ce07a; }
 
   /* status */
-  .status{font-size:13px; text-align:center; color:var(--sub); font-weight:600; margin-top:4px; margin-bottom:12px;}
+  .status{font-size:16px; text-align:center; color:var(--sub); font-weight:600; margin-top:4px; margin-bottom:12px;}
 
   /* controls */
   .controls{display:grid; grid-template-columns:1fr 1fr; gap:12px; align-self:end}
   .btn{
-    height:46px; border:none; border-radius:14px;
+    height:46px; border:none; border-radius:0; /* square corners */
     background:#1b2a3a; color:var(--white); font-weight:700; font-size:15px; letter-spacing:.4px;
   }
+
+  .info { margin-top: 8vh; }
+  .controls { margin-bottom: 8vh; }
 </style>
 </head>
 <body>
@@ -116,7 +127,7 @@
         <div class="label">NEXT PILL</div>
       </div>
       <div class="pair">
-        <div class="time eatleft">3.4 h</div>
+        <div class="time eatleft">3.4 <small>h</small></div>
         <div class="label">HOURS LEFT TO EAT</div>
       </div>
     </section>
@@ -149,6 +160,8 @@
     <section class="controls">
       <button class="btn">LOG PILL</button>
       <button class="btn">LOG MEAL</button>
+      <button class="btn">EDIT PILL</button>
+      <button class="btn">EDIT MEAL</button>
     </section>
   </main>
 </body>
