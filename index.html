@@ -66,7 +66,7 @@
   }
   .focus .time.nextpill {
     color: #ffffff;           /* pure white */
-    font-size: clamp(78px, 22vw, 120px); /* larger primary */
+    font-size: clamp(74px, 21vw, 114px); /* larger primary */
   }
   .focus .time.nextpill small {
     font-size: .25em;       /* 50% smaller */
@@ -75,7 +75,7 @@
   }
   .focus .time.eatleft {
     color: #4ce07a;           /* bright green */
-    font-size: clamp(58px, 18vw, 96px); /* ~20% smaller */
+    font-size: clamp(54px, 17vw, 90px); /* ~20% smaller */
     margin-top: 4px;
   }
   .focus .time.eatleft small {
@@ -96,20 +96,21 @@
 
   /* info column (stacked, all white thin) */
   .info{display:grid; row-gap:4px; justify-items:center; margin-bottom:4px;}
-  .info .val{font-size:clamp(27px,7.5vw,42px); font-weight:300}
+  .info .val{font-size:clamp(25px,7vw,38px); font-weight:300}
   .caps{font-size:13px; color:var(--white); letter-spacing:.4px; text-transform:uppercase}
   .info .ipair { display:flex; flex-direction:column; align-items:center; text-align:center; }
   .info .ipair + .ipair { margin-top: 6px; }
   .info .row{display:flex; justify-content:space-evenly; align-items:center; gap:10px; width:100%;}
-  /* Only apply green to food-related data (Eat Between) */
-  .info #eat_between, .info #eat_between + .caps {
-    color: #4ce07a;
-  }
-  .info #eat_again, .info #eat_again + .caps {
-    color: #4ce07a;
-  }
-  .info .row:first-child { justify-content: space-evenly; gap: 20px; width: 100%; }
-  .info #eat_between { color: var(--white); }
+  .info .row:nth-child(1) { justify-content:flex-start; gap:20px; width:100%; }
+  .info .row:nth-child(1) .ipair { align-items:flex-start; text-align:left; }
+  .info .row:nth-child(2) { justify-content:flex-end; gap:20px; width:100%; }
+  .info .row:nth-child(2) .ipair { align-items:flex-end; text-align:right; }
+  .info #eat_again { color: #4ce07a; }
+  .info #eat_again + .caps { color: var(--white); }
+  .info #last_meal { color: #4ce07a; }
+  .info #last_meal + .caps { color: var(--white); }
+  .info #eat_between { color: #4ce07a; }
+  .info #eat_between + .caps { color: var(--white); }
 
   /* status */
   .status{font-size:16px; text-align:center; color:var(--sub); font-weight:600; margin-top:4px; margin-bottom:12px;}
