@@ -5,157 +5,94 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
 <title>Pill Man</title>
 <meta name="theme-color" content="#0b0f14"/>
-
 <style>
-  /* ===== Canvas (portrait iPhone) ===== */
   :root{
-    --bg1:#0b0f14;
-    --bg2:#111720;
-    --text:#e5f0ff;
-    --sub:#8aa0b3;
-    --yel:#ffb74d;
-    --grn:#4ce07a;
-    --red:#ff4d4d;
-    --wrap-max:480px;
-    --wrap-min:340px;
-    --gut:16px;   /* side gutters */
-    --gap:12px;   /* row gaps */
-    --radius:20px;
+    --bg1:#0b0f14; --bg2:#111720;
+    --white:#e5f0ff; --sub:#a6b3c2;
   }
   html,body{height:100%}
   body{
     margin:0;
     background:linear-gradient(180deg,var(--bg1),var(--bg2));
-    color:var(--text);
-    font-family:-apple-system, BlinkMacSystemFont, "SF Pro Rounded", "SF Pro Text", system-ui, Arial, sans-serif;
+    color:var(--white);
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Rounded","SF Pro Text",system-ui,Arial,sans-serif;
+    font-weight:300;                 /* thin vibe */
     -webkit-font-smoothing:antialiased;
     -webkit-text-size-adjust:100%;
     display:flex; justify-content:center; align-items:stretch;
-    min-height:100svh; /* avoid URL-bar jumps on iOS */
+    min-height:100svh;
   }
   .wrap{
-    width:clamp(var(--wrap-min), 92vw, var(--wrap-max));
+    width:clamp(340px,92vw,480px);
     padding:
       calc(18px + env(safe-area-inset-top))
-      calc(var(--gut) + env(safe-area-inset-right))
+      calc(18px + env(safe-area-inset-right))
       calc(22px + env(safe-area-inset-bottom))
-      calc(var(--gut) + env(safe-area-inset-left));
+      calc(18px + env(safe-area-inset-left));
     display:grid;
-    grid-template-rows: min-content 0.42fr min-content min-content 0.18fr;
-    row-gap:var(--gap);
+    row-gap:14px;
+    grid-template-rows:min-content auto min-content min-content min-content;
   }
+  /* header */
+  .title{font-size:15px; font-weight:700; text-align:center}
+  .state{font-size:13px; color:var(--sub); text-align:center}
 
-  /* ===== Header ===== */
-  .hdr{
-    display:flex; flex-direction:column; align-items:center; gap:6px;
-  }
-  .title{font-weight:900; letter-spacing:.6px; font-size:14px; color:var(--text)}
-  .state{font-weight:700; font-size:13px; color:var(--sub)}
-
-  /* ===== Primary clocks (no boxes; just spacing) ===== */
-  .primary{
-    display:grid; grid-template-columns:1fr 1fr; column-gap:14px; align-items:center;
-  }
-  .block{display:flex; flex-direction:column; align-items:center; gap:8px}
-  .label{font-weight:700; font-size:12px; letter-spacing:.6px; color:var(--sub)}
-  .time{
-    font-weight:900;
-    font-size:clamp(48px, 14vw, 80px);
-    line-height:.9; white-space:nowrap;
-  }
+  /* primary blocks (STACKED) */
+  .label{color:var(--sub); font-size:12px; letter-spacing:.6px; text-align:center; margin-bottom:6px}
+  .time{font-weight:300; font-size:clamp(48px,14vw,84px); line-height:.9; text-align:center; white-space:nowrap}
   .time small{font-size:.36em}
 
-  /* color intent for values (purely visual in this mock) */
-  .pill  .time{color:var(--yel)}
-  .cut   .time{color:var(--red)}
-  .soon  .time{color:var(--grn)} /* used when label reads EAT SOON */
+  /* info column (stacked, all white thin) */
+  .info{display:grid; row-gap:10px; justify-items:center}
+  .info .val{font-size:clamp(18px,5vw,28px); font-weight:300}
+  .caps{font-size:13px; color:var(--sub); letter-spacing:.4px; text-transform:uppercase}
 
-  /* ===== Info row ===== */
-  .info{
-    display:flex; flex-direction:column; align-items:center; gap:6px;
-  }
-  .info-values{
-    display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; justify-content:center;
-    font-size:clamp(18px, 4.8vw, 28px); font-weight:900;
-  }
-  .info-values .since{color:var(--yel)}
-  .info-values .eat{color:var(--grn)}
-  .info-caps{
-    display:flex; gap:28px; justify-content:center;
-    font-size:14px; font-weight:700; color:var(--sub);
-  }
+  /* status */
+  .status{font-size:13px; text-align:center; color:var(--sub); font-weight:600}
 
-  /* ===== Status ===== */
-  .status{
-    text-align:center; font-weight:800; font-size:13px;
-    color:var(--grn); /* mock default = OK */
-    padding:8px 10px;
-  }
-  .status.ok{color:var(--grn)}
-  .status.warn{color:var(--yel)}
-  .status.bad{color:var(--red)}
-
-  /* ===== Controls (bottom reach zone) ===== */
-  .controls{
-    align-self:end;
-    display:grid; grid-template-columns:1fr 1fr; gap:12px;
-  }
+  /* controls */
+  .controls{display:grid; grid-template-columns:1fr 1fr; gap:12px; align-self:end}
   .btn{
-    height:46px; border:none; border-radius:12px; cursor:pointer;
-    font-weight:900; font-size:15px;
+    height:46px; border:none; border-radius:14px;
+    background:#1b2a3a; color:var(--white); font-weight:700; font-size:15px; letter-spacing:.4px;
   }
-  .btn-pill{background:var(--yel); color:#0b0f14}
-  .btn-meal{background:var(--red); color:#fff}
-
-  /* Small print footer (optional; hidden in mock) */
-  .foot{display:none}
 </style>
 </head>
 <body>
   <main class="wrap">
+    <div class="title">PILL MAN</div>
+    <div class="state">READY</div>
 
-    <!-- Header -->
-    <header class="hdr">
-      <div class="title">PILL MAN</div>
-      <div class="state">Ready</div> <!-- Overdue/Ready/Locked – runtime text -->
-    </header>
-
-    <!-- Primary zone: two big clocks -->
-    <section class="primary">
-      <div class="block pill">
-        <div class="label">NEXT PILL</div>
-        <div class="time">12:30 <small>PM</small></div>
-      </div>
-      <div class="block cut">
-        <div class="label" id="eatLabel">STOP EATING</div> <!-- changes to EAT SOON during post-pill hour -->
-        <div class="time">10:30 <small>AM</small></div>     <!-- shows Eat Before; green when EAT SOON -->
-      </div>
+    <!-- STACKED primary -->
+    <section>
+      <div class="label">NEXT PILL</div>
+      <div class="time">12:30 <small>PM</small></div>
     </section>
 
-    <!-- Info row: Since / After / Before -->
+    <section>
+      <div class="label" id="eatLabel">STOP EATING</div>
+      <div class="time">10:30 <small>AM</small></div>
+    </section>
+
+    <!-- INFO (stacked) -->
     <section class="info">
-      <div class="info-values">
-        <span class="since">1.7&nbsp;h</span>
-        <span>•</span>
-        <span class="eat">1:30&nbsp;PM</span>
-        <span>•</span>
-        <span class="eat">10:30&nbsp;AM</span>
-      </div>
-      <div class="info-caps">
-        <span>Since</span><span>After</span><span>Before</span>
-      </div>
+      <div class="val">1.7 h</div>
+      <div class="caps">Since Pill</div>
+
+      <div class="val">1:30 PM</div>
+      <div class="caps">Eat After</div>
+
+      <div class="val">10:30 AM</div>
+      <div class="caps">Eat Before</div>
     </section>
 
-    <!-- Status line -->
-    <div class="status ok">On target (+8 h) • Eat OK now</div>
+    <div class="status">On target (+8 h) • Eat OK now</div>
 
-    <!-- Controls -->
+    <!-- controls -->
     <section class="controls">
-      <button class="btn btn-pill">LOG PILL</button>
-      <button class="btn btn-meal">LOG MEAL</button>
+      <button class="btn">LOG PILL</button>
+      <button class="btn">LOG MEAL</button>
     </section>
-
-    <div class="foot"></div>
   </main>
 </body>
 </html>
