@@ -135,34 +135,142 @@
     <!-- INFO (stacked) -->
     <section class="info">
       <div class="ipair">
-        <div class="val">1.7 h</div>
+        <div class="val" id="since_pill">—</div>
         <div class="caps">Since Pill</div>
       </div>
       <div class="ipair">
-        <div class="val">9:00 AM</div>
+        <div class="val" id="last_meal">—</div>
         <div class="caps">Last Meal</div>
       </div>
       <div class="row">
         <div class="ipair">
-          <div class="val">1:30 PM</div>
+          <div class="val" id="eat_after">—</div>
           <div class="caps">Eat After</div>
         </div>
         <div class="ipair">
-          <div class="val">10:30 AM</div>
+          <div class="val" id="eat_before">—</div>
           <div class="caps">Eat Before</div>
         </div>
       </div>
     </section>
 
-    <div class="status">On target (+8 h) • Eat OK now</div>
+    <div class="status" id="status">On target (+8 h) • Eat OK now</div>
 
     <!-- controls -->
     <section class="controls">
-      <button class="btn">LOG PILL</button>
-      <button class="btn">LOG MEAL</button>
-      <button class="btn">EDIT PILL</button>
-      <button class="btn">EDIT MEAL</button>
+      <button class="btn" id="btn_pill">LOG PILL</button>
+      <button class="btn" id="btn_meal">LOG MEAL</button>
+      <button class="btn" id="btn_edit_pill">EDIT PILL</button>
+      <button class="btn" id="btn_edit_meal">EDIT MEAL</button>
     </section>
   </main>
+</main>
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const H = 3600e3;
+  const two = n => String(n).padStart(2,'0');
+  const nowTS = () => Date.now();
+  const LS_KEY = 'pillman_v2';
+
+  let LAST_PILL_TS = null;
+  let LAST_MEAL_TS = null;
+
+  function showClock(ts){
+    if(ts==null) return '—';
+    const d = new Date(ts);
+    let h = d.getHours(), m = d.getMinutes();
+    const ap = h>=12 ? 'PM' : 'AM';
+    h = h%12 || 12;
+    return `${h}:${two(m)} ${ap}`;
+  }
+  function showClockHTML(ts){
+    if(ts==null) return '—';
+    const d = new Date(ts);
+    let h = d.getHours(), m = d.getMinutes();
+    const ap = h>=12 ? 'PM' : 'AM';
+    h = h%12 || 12;
+    return `${h}:${two(m)} <small>${ap}</small>`;
+  }
+  function parseClockInput(t){
+    if(!t) return null; const s = String(t).trim(); if(!s) return null;
+    const d = new Date();
+    if(s.includes(':')){ const [Hh, Mm='0'] = s.split(':'); const hh=+Hh, mm=+Mm; if(isNaN(hh)||isNaN(mm)) return null; d.setHours(hh, mm, 0, 0); return d.getTime(); }
+    if(s.includes('.')){ const f=+s; if(isNaN(f)) return null; const hh=Math.trunc(f), mm=Math.round((f-hh)*60); d.setHours(hh, mm, 0, 0); return d.getTime(); }
+    const hh=+s; if(isNaN(hh)) return null; d.setHours(hh,0,0,0); return d.getTime();
+  }
+
+  function saveLocal(){ try{ localStorage.setItem(LS_KEY, JSON.stringify({V:2, LAST_PILL_TS, LAST_MEAL_TS})); }catch(e){} }
+  function loadLocal(){ try{ const raw=localStorage.getItem(LS_KEY); if(!raw) return; const d=JSON.parse(raw); if(d&&d.V===2){ LAST_PILL_TS=d.LAST_PILL_TS??null; LAST_MEAL_TS=d.LAST_MEAL_TS??null; } }catch(e){} }
+
+  function plan(){
+    const now = nowTS();
+    if(LAST_PILL_TS==null){
+      return { now, lp:null, lm:LAST_MEAL_TS, nextP:null, eatAfter:null, eatBefore:null, overdue:false, hoursSince:null, hoursLeft:null };
+    }
+    const lp = LAST_PILL_TS;
+    const nextP = lp + 8*H;            // hard +8h (no auto-roll)
+    const eatAfter  = lp + 1*H;        // 1h after pill
+    const eatBefore = nextP - 2*H;     // 2h before pill
+    const overdue   = now > nextP;
+    const hoursSince= (now - lp)/H;
+    const hoursLeft = Math.max(0, (eatBefore - now)/H);
+    return { now, lp, lm:LAST_MEAL_TS, nextP, eatAfter, eatBefore, overdue, hoursSince, hoursLeft };
+  }
+
+  function render(){
+    const r = plan();
+    // top focus values
+    const nextPEl = document.querySelector('.time.nextpill');
+    const eatLeftEl = document.querySelector('.time.eatleft');
+    nextPEl.innerHTML = showClockHTML(r.nextP);
+    eatLeftEl.innerHTML = (r.hoursLeft==null? '—' : `${r.hoursLeft.toFixed(1)} <small>h</small>`);
+
+    // info values
+    if($('since_pill')) $('since_pill').textContent = (r.hoursSince==null? '—' : `${Math.max(0,r.hoursSince).toFixed(1)} h`);
+    if($('last_meal')) $('last_meal').textContent = showClock(r.lm);
+    if($('eat_after')) $('eat_after').textContent = showClock(r.eatAfter);
+    if($('eat_before')) $('eat_before').textContent = showClock(r.eatBefore);
+
+    // status
+    const s = $('status');
+    if(!s) return;
+    s.classList.remove('ok','warn','bad');
+    if(r.overdue){
+      s.classList.add('bad');
+      s.textContent = `Pill overdue • do not eat • take pill now • Eat after ${showClock(r.now + 1*H)}`;
+    } else if(r.now < (r.lp + 1*H)){
+      s.classList.add('bad');
+      s.textContent = `Do not eat now • wait until ${showClock(r.lp + 1*H)}`;
+    } else if(r.now >= (r.eatBefore||0)){
+      s.classList.add('bad');
+      s.textContent = 'Do not eat now';
+    } else if((r.nextP - r.now) <= 3*H){
+      s.classList.add('warn');
+      s.textContent = 'Pill soon • 1h to eat';
+    } else {
+      s.classList.add('ok');
+      s.textContent = 'On target (+8 h) • Eat OK now';
+    }
+  }
+
+  function wire(){
+    const btnP = document.getElementById('btn_pill');
+    const btnM = document.getElementById('btn_meal');
+    const btnEP= document.getElementById('btn_edit_pill');
+    const btnEM= document.getElementById('btn_edit_meal');
+    if(btnP) btnP.onclick = ()=>{ LAST_PILL_TS = nowTS(); saveLocal(); render(); };
+    if(btnM) btnM.onclick = ()=>{ LAST_MEAL_TS = nowTS(); saveLocal(); render(); };
+    if(btnEP) btnEP.onclick= ()=>{ const cur= LAST_PILL_TS? showClock(LAST_PILL_TS):''; const inp=prompt('Last Pill (HH or HH:MM or 4.5)', cur); if(inp==null)return; const ts=parseClockInput(inp); if(ts!=null){ LAST_PILL_TS=ts; saveLocal(); render(); } };
+    if(btnEM) btnEM.onclick= ()=>{ const cur= LAST_MEAL_TS? showClock(LAST_MEAL_TS):''; const inp=prompt('Last Meal (HH or HH:MM or 4.5)', cur); if(inp==null)return; const ts=parseClockInput(inp); if(ts!=null){ LAST_MEAL_TS=ts; saveLocal(); render(); } };
+  }
+
+  // boot
+  loadLocal();
+  wire();
+  render();
+  setInterval(render, 15000);
+})();
+</script>
 </body>
 </html>
