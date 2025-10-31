@@ -42,10 +42,14 @@
   .label{color:var(--sub); font-size:12px; letter-spacing:.6px; text-align:center; margin-bottom:6px}
   .time{font-weight:300; font-size:clamp(48px,14vw,84px); line-height:.9; text-align:center; white-space:nowrap}
 
-  /* Inter Tight for top data */
-  .focus .time{ font-family:'Inter Tight', -apple-system, system-ui, Arial, sans-serif; font-weight:100; font-variation-settings:'wght' 100; }
-  /* Inter Tight for buttons */
-  .controls .btn{ font-family:'Inter Tight', -apple-system, system-ui, Arial, sans-serif; font-weight:100; }
+  /* Inter Tight Thin 100 for all data */
+  .focus .time,
+  .info .val,
+  .controls .btn {
+    font-family:'Inter Tight', -apple-system, system-ui, Arial, sans-serif;
+    font-weight:100;
+    font-variation-settings:'wght' 100;
+  }
 
   /* Stacked focus group: NEXT PILL + HOURS LEFT TO EAT */
   .focus {
@@ -162,7 +166,7 @@
     <!-- STACKED FOCUS group -->
     <section class="focus">
       <div class="pair">
-        <div class="time nextpill" style="margin-left: 20px;>12:30 <small>PM</small></div>
+        <div class="time nextpill" style="margin-left: 20px;">12:30 <small>PM</small></div>
         <div class="label">NEXT PILL</div>
       </div>
       <div class="pair">
