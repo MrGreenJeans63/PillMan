@@ -1,5 +1,3 @@
-
-
 <!doctype html>
 <html lang="en">
 <head>
@@ -27,11 +25,53 @@
     font-size:clamp(42px,12vw,72px);}
   .status{font-size:15px;}
   .ok{color:var(--ok);} .warn{color:var(--warn);} .bad{color:var(--bad);}
-  .controls{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px;}
-  button{height:46px;border:none;border-radius:8px;font-family:'Inter Tight',system-ui;
-    font-weight:100;font-size:15px;cursor:pointer;color:var(--bg);}
-  #btn_pill{background:var(--warn);} #btn_meal{background:var(--bad);}
-  #btn_edit_pill{background:#666;color:#fff;} #btn_edit_meal{background:#666;color:#fff;}
+  .controls {
+    display:flex;
+    flex-wrap:nowrap;
+    justify-content:center;
+    gap:12px;
+    margin-top:8px;
+    width:100%;
+    max-width:420px;
+  }
+  button {
+    flex:1;
+    height:46px;
+    border:none;
+    border-radius:8px;
+    font-family:'Inter Tight',system-ui,sans-serif;
+    font-weight:100;
+    font-size:15px;
+    cursor:pointer;
+    color:#fff;
+  }
+  #btn_meal { background:#ff4d4d; color:#fff; }
+  #btn_pill { background:#4ce07a; color:#fff; }
+  #btn_edit_meal, #btn_edit_pill { background:#666; color:#fff; }
+  .dataview{
+    display:grid;
+    grid-template-columns:1fr;
+    width:100%;
+    max-width:420px;
+    margin-top:8px;
+    font-size:13px;
+    row-gap:4px;
+  }
+  .dataview .row{
+    display:flex;
+    justify-content:space-between;
+    border-bottom:1px solid rgba(255,255,255,0.1);
+    padding:2px 0;
+  }
+  .dataview .label{
+    color:var(--muted);
+    letter-spacing:.4px;
+  }
+  .dataview .val{
+    font-family:'Inter Tight',system-ui,sans-serif;
+    font-weight:100;
+    color:var(--fg);
+  }
 </style>
 </head>
 <body>
@@ -45,6 +85,16 @@
     <div class="label" id="safe_label">SAFE / EAT AGAIN AT</div>
   </div>
   <div class="status" id="status">Log a meal to begin.</div>
+  <div class="dataview">
+    <div class="row"><span class="label">LAST MEAL</span><span class="val" id="dev_last_meal">—</span></div>
+    <div class="row"><span class="label">HOURS SINCE MEAL</span><span class="val" id="dev_since_meal">—</span></div>
+    <div class="row"><span class="label">SAFE PILL TIME</span><span class="val" id="dev_safe_pill">—</span></div>
+    <div class="row"><span class="label">LAST PILL</span><span class="val" id="dev_last_pill">—</span></div>
+    <div class="row"><span class="label">HOURS SINCE PILL</span><span class="val" id="dev_since_pill">—</span></div>
+    <div class="row"><span class="label">EAT AGAIN</span><span class="val" id="dev_eat_again">—</span></div>
+    <div class="row"><span class="label">HOURS LEFT TO EAT</span><span class="val" id="dev_hours_left">—</span></div>
+    <div class="row"><span class="label">NEXT MEAL (EST)</span><span class="val" id="dev_next_meal">—</span></div>
+  </div>
   <div class="controls">
     <button id="btn_meal">LOG MEAL</button>
     <button id="btn_pill">LOG PILL</button>
@@ -94,6 +144,16 @@ function render(){
     $('safe_label').textContent='SAFE AT';
   }
   status.textContent=r.msg;
+  if ($('dev_last_meal')) {
+    $('dev_last_meal').textContent = LAST_MEAL_TS ? showClock(LAST_MEAL_TS) : '—';
+    $('dev_since_meal').textContent = LAST_MEAL_TS ? ((nowTS() - LAST_MEAL_TS)/H).toFixed(1)+' h' : '—';
+    $('dev_safe_pill').textContent = LAST_MEAL_TS ? showClock(LAST_MEAL_TS + 2*H) : '—';
+    $('dev_last_pill').textContent = LAST_PILL_TS ? showClock(LAST_PILL_TS) : '—';
+    $('dev_since_pill').textContent = LAST_PILL_TS ? ((nowTS() - LAST_PILL_TS)/H).toFixed(1)+' h' : '—';
+    $('dev_eat_again').textContent = LAST_PILL_TS ? showClock(LAST_PILL_TS + 1*H) : '—';
+    $('dev_hours_left').textContent = (LAST_MEAL_TS) ? ((LAST_MEAL_TS + 2*H - nowTS())/H).toFixed(1)+' h' : '—';
+    $('dev_next_meal').textContent = LAST_MEAL_TS ? showClock(LAST_MEAL_TS + 4*H) : '—';
+  }
 }
 
 function parseClockInput(t){ if(!t) return null; const s=String(t).trim(); const d=new Date();
