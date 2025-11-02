@@ -72,6 +72,16 @@
     font-weight:100;
     color:var(--fg);
   }
+  .dataview .group{
+    margin-top:8px;
+    margin-bottom:4px;
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:.6px;
+    color:var(--muted);
+    border-bottom:1px solid rgba(255,255,255,0.12);
+    padding-bottom:2px;
+  }
 </style>
 </head>
 <body>
@@ -86,14 +96,22 @@
   </div>
   <div class="status" id="status">Log a meal to begin.</div>
   <div class="dataview">
+    <div class="group">EATING</div>
     <div class="row"><span class="label">LAST MEAL</span><span class="val" id="dev_last_meal">—</span></div>
     <div class="row"><span class="label">HOURS SINCE MEAL</span><span class="val" id="dev_since_meal">—</span></div>
     <div class="row"><span class="label">SAFE PILL TIME</span><span class="val" id="dev_safe_pill">—</span></div>
+    <div class="row"><span class="label">HEURISTIC NEXT MEAL</span><span class="val" id="dev_next_meal">—</span></div>
+    <div class="row"><span class="label">HOURS UNTIL NEXT MEAL</span><span class="val" id="dev_until_next_meal">—</span></div>
+    <div class="row"><span class="label">EAT AGAIN (IF PILL SOONEST)</span><span class="val" id="dev_eat_again">—</span></div>
+    <div class="row"><span class="label">HOURS LEFT TO EAT</span><span class="val" id="dev_hours_left">—</span></div>
+
+    <div class="group">PILL</div>
     <div class="row"><span class="label">LAST PILL</span><span class="val" id="dev_last_pill">—</span></div>
     <div class="row"><span class="label">HOURS SINCE PILL</span><span class="val" id="dev_since_pill">—</span></div>
-    <div class="row"><span class="label">EAT AGAIN</span><span class="val" id="dev_eat_again">—</span></div>
-    <div class="row"><span class="label">HOURS LEFT TO EAT</span><span class="val" id="dev_hours_left">—</span></div>
-    <div class="row"><span class="label">NEXT MEAL (EST)</span><span class="val" id="dev_next_meal">—</span></div>
+    <div class="row"><span class="label">NEXT SAFE PILL</span><span class="val" id="dev_next_safe_pill">—</span></div>
+    <div class="row"><span class="label">HOURS UNTIL SAFE PILL</span><span class="val" id="dev_until_safe_pill">—</span></div>
+    <div class="row"><span class="label">EST. NEXT PILL (MEAL)</span><span class="val" id="dev_est_next_pill">—</span></div>
+    <div class="row"><span class="label">EST. GAP (LAST→NEXT)</span><span class="val" id="dev_est_gap">—</span></div>
   </div>
   <div class="controls">
     <button id="btn_meal">LOG MEAL</button>
@@ -116,18 +134,40 @@ const nowTS=()=>Date.now();
 let LAST_MEAL_TS=null, LAST_PILL_TS=null;
 
 function plan(){
-  const now=nowTS();
-  if(!LAST_MEAL_TS) return { state:'none', msg:'Log a meal to begin.' };
-  const sinceMeal=(now-LAST_MEAL_TS)/H;
-  const eatAfter=LAST_MEAL_TS+2*H;
-  const safeAfter=eatAfter;
-  const eatAgain=(LAST_PILL_TS)?LAST_PILL_TS+1*H:null;
-  let state='ok', msg='';
-  // logic
-  if(sinceMeal<2){ state='bad'; msg=`Too soon after meal • Safe at ${showClock(safeAfter)}`; }
-  else if(LAST_PILL_TS && now < (LAST_PILL_TS + 1*H)){ state='bad'; msg=`Post-pill lock • Eat again at ${showClock(eatAgain)}`; }
-  else{ state='ok'; msg='Safe to take pill'; }
-  return {state,msg,safeAfter,eatAgain};
+  const now = nowTS();
+  if (!LAST_MEAL_TS) return { state:'none', msg:'Log a meal to begin.' };
+
+  const sinceMeal = (now - LAST_MEAL_TS) / H;
+  const safeAfter = LAST_MEAL_TS + 2*H;           // earliest safe pill time (meal anchor)
+  const pillLock  = (LAST_PILL_TS && now < (LAST_PILL_TS + 1*H));
+
+  // Decide state and guidance message
+  let state, msg;
+  if (sinceMeal < 2) {
+    state = 'bad';
+    msg   = `Too soon after meal • Safe at ${showClock(safeAfter)}`;
+  } else if (pillLock) {
+    state = 'bad';
+    msg   = `Post-pill lock • Eat again at ${showClock(LAST_PILL_TS + 1*H)}`;
+  } else {
+    state = 'ok';
+    msg   = 'Safe to take pill';
+  }
+
+  // Eat Again = earliest time you could eat if you act at the soonest sensible moment from now
+  let eatAgainAt = null;
+  if (sinceMeal < 2) {
+    // you cannot take a pill yet; earliest scenario: take pill at safeAfter → eat again 1h later
+    eatAgainAt = safeAfter + 1*H;
+  } else if (pillLock) {
+    // you already took a pill; unlock is 1h after last pill
+    eatAgainAt = LAST_PILL_TS + 1*H;
+  } else {
+    // you can take a pill now; eat again 1h from now if you do
+    eatAgainAt = now + 1*H;
+  }
+
+  return { state, msg, safeAfter, eatAgainAt };
 }
 
 function render(){
@@ -145,14 +185,55 @@ function render(){
   }
   status.textContent=r.msg;
   if ($('dev_last_meal')) {
-    $('dev_last_meal').textContent = LAST_MEAL_TS ? showClock(LAST_MEAL_TS) : '—';
-    $('dev_since_meal').textContent = LAST_MEAL_TS ? ((nowTS() - LAST_MEAL_TS)/H).toFixed(1)+' h' : '—';
-    $('dev_safe_pill').textContent = LAST_MEAL_TS ? showClock(LAST_MEAL_TS + 2*H) : '—';
-    $('dev_last_pill').textContent = LAST_PILL_TS ? showClock(LAST_PILL_TS) : '—';
-    $('dev_since_pill').textContent = LAST_PILL_TS ? ((nowTS() - LAST_PILL_TS)/H).toFixed(1)+' h' : '—';
-    $('dev_eat_again').textContent = LAST_PILL_TS ? showClock(LAST_PILL_TS + 1*H) : '—';
-    $('dev_hours_left').textContent = (LAST_MEAL_TS) ? ((LAST_MEAL_TS + 2*H - nowTS())/H).toFixed(1)+' h' : '—';
-    $('dev_next_meal').textContent = LAST_MEAL_TS ? showClock(LAST_MEAL_TS + 4*H) : '—';
+    const now = nowTS();
+    const lm  = LAST_MEAL_TS;
+    const lp  = LAST_PILL_TS;
+    const sinceMeal = lm ? (now - lm)/H : null;
+    const sincePill = lp ? (now - lp)/H : null;
+    const safePill  = lm ? (lm + 2*H) : null;              // meal anchor
+    const nextMeal  = lm ? (lm + 4*H) : null;              // heuristic
+    const untilNextMeal = nextMeal ? (nextMeal - now)/H : null;
+
+    // Next safe pill must respect both meal (2h) and pill (8h) if last pill exists
+    let nextSafePill = safePill;
+    if (lp) nextSafePill = Math.max(nextSafePill, lp + 8*H);
+    const untilSafePill = nextSafePill ? (nextSafePill - now)/H : null;
+
+    // Eat Again (earliest if you act at soonest sensible moment now)
+    let eatAgainAt = null;
+    if (lm){
+      if (sinceMeal < 2) {
+        eatAgainAt = safePill + 1*H;             // take at safe, then +1h
+      } else if (lp && now < (lp + 1*H)) {
+        eatAgainAt = lp + 1*H;                   // post-pill lock
+      } else {
+        eatAgainAt = now + 1*H;                  // take now → eat in 1h
+      }
+    }
+
+    // Hours left to eat (simple): time until safe if locked; else 0.0
+    const hoursLeftEat = lm ? Math.max(0, (safePill - now)/H) : null;
+
+    // Estimated next pill if you eat at heuristic next meal time
+    const estNextPillFromMeal = nextMeal ? (nextMeal + 2*H) : null;
+    const estGap = (sincePill!=null && untilNextMeal!=null)
+      ? Math.max(0, sincePill) + Math.max(0, untilNextMeal) + 2
+      : null;
+
+    // Bind
+    $('dev_last_meal').textContent     = lm ? showClock(lm) : '—';
+    $('dev_since_meal').textContent    = (sinceMeal!=null) ? `${Math.max(0,sinceMeal).toFixed(1)} h` : '—';
+    $('dev_safe_pill').textContent     = safePill ? showClock(safePill) : '—';
+    $('dev_next_meal').textContent     = nextMeal ? showClock(nextMeal) : '—';
+    $('dev_until_next_meal').textContent = (untilNextMeal!=null) ? `${(untilNextMeal).toFixed(1)} h` : '—';
+    $('dev_eat_again').textContent     = eatAgainAt ? showClock(eatAgainAt) : '—';
+    $('dev_hours_left').textContent    = (hoursLeftEat!=null) ? `${hoursLeftEat.toFixed(1)} h` : '—';
+    $('dev_last_pill').textContent     = lp ? showClock(lp) : '—';
+    $('dev_since_pill').textContent    = (sincePill!=null) ? `${Math.max(0,sincePill).toFixed(1)} h` : '—';
+    $('dev_next_safe_pill').textContent= nextSafePill ? showClock(nextSafePill) : '—';
+    $('dev_until_safe_pill').textContent= (untilSafePill!=null) ? `${(untilSafePill).toFixed(1)} h` : '—';
+    $('dev_est_next_pill').textContent = estNextPillFromMeal ? showClock(estNextPillFromMeal) : '—';
+    $('dev_est_gap').textContent       = (estGap!=null) ? `${estGap.toFixed(1)} h` : '—';
   }
 }
 
