@@ -100,7 +100,7 @@
     <div class="row"><span class="label">LAST MEAL</span><span class="val" id="dev_last_meal">—</span></div>
     <div class="row"><span class="label">HOURS SINCE MEAL</span><span class="val" id="dev_since_meal">—</span></div>
     <div class="row"><span class="label">SAFE PILL TIME</span><span class="val" id="dev_safe_pill">—</span></div>
-    <div class="row"><span class="label">HEURISTIC NEXT MEAL</span><span class="val" id="dev_next_meal">—</span></div>
+    <div class="row"><span class="label">EST. NEXT MEAL</span><span class="val" id="dev_next_meal">—</span></div>
     <div class="row"><span class="label">HOURS UNTIL NEXT MEAL</span><span class="val" id="dev_until_next_meal">—</span></div>
     <div class="row"><span class="label">EAT AGAIN (IF PILL SOONEST)</span><span class="val" id="dev_eat_again">—</span></div>
     <div class="row"><span class="label">HOURS LEFT TO EAT</span><span class="val" id="dev_hours_left">—</span></div>
@@ -192,8 +192,10 @@ function render(){
     const sincePill = lp ? (now - lp)/H : null;
     const safePill  = lm ? (lm + 2*H) : null;              // meal anchor
     const nextMeal  = lm ? (lm + 4*H) : null;              // heuristic
-    const untilNextMeal = nextMeal ? (nextMeal - now)/H : null;
-
+    // const untilNextMeal = nextMeal ? (nextMeal - now)/H : null; // remove heuristic from the timing
+    let untilNextMeal = null;
+    // use eatAgainAt (earliest eat time if you act at soonest sensible moment)
+    
     // Next safe pill must respect both meal (2h) and pill (8h) if last pill exists
     let nextSafePill = safePill;
     if (lp) nextSafePill = Math.max(nextSafePill, lp + 8*H);
@@ -210,12 +212,16 @@ function render(){
         eatAgainAt = now + 1*H;                  // take now → eat in 1h
       }
     }
+    // Hours until next possible meal is time until eatAgainAt
+    if (eatAgainAt) {
+      untilNextMeal = (eatAgainAt - now) / H;
+    }
 
     // Hours left to eat (simple): time until safe if locked; else 0.0
     const hoursLeftEat = lm ? Math.max(0, (safePill - now)/H) : null;
 
-    // Estimated next pill if you eat at heuristic next meal time
-    const estNextPillFromMeal = nextMeal ? (nextMeal + 2*H) : null;
+    // Estimated next pill if you eat at the earliest possible time (eatAgainAt)
+    const estNextPillFromMeal = eatAgainAt ? (eatAgainAt + 2*H) : null;
     const estGap = (sincePill!=null && untilNextMeal!=null)
       ? Math.max(0, sincePill) + Math.max(0, untilNextMeal) + 2
       : null;
