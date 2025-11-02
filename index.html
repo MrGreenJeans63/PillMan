@@ -242,12 +242,20 @@ function render(){
       untilNextMeal = (eatAgainAt - now) / H;
     }
 
-    // Hours left to eat: only during post‑pill lock; otherwise you can eat now (0.0 h)
+    // Hours Left to Eat: countdown only while you can eat (green window)
+    // Lock states (too soon after meal or post-pill) → 0.0 h
     let hoursLeftEat = null;
-    if (lp && now < (lp + 1*H)) {
-      hoursLeftEat = (lp + 1*H - now) / H;  // countdown until eat OK
-    } else if (lm) {
-      hoursLeftEat = 0.0;                   // not in a post‑pill lock → free to eat
+    if (lm) {
+      const tooSoonAfterMeal = (sinceMeal < 2);
+      const inPostPillLock   = (lp && now < (lp + 1*H));
+      if (tooSoonAfterMeal || inPostPillLock) {
+        hoursLeftEat = 0.0;
+      } else {
+        // green window: time remaining until you must stop eating (Eat Before)
+        // nextSafePill already respects both meal(2h) and pill(8h)
+        const eatBefore = (nextSafePill != null) ? (nextSafePill - 2*H) : null;
+        hoursLeftEat = (eatBefore != null) ? Math.max(0, (eatBefore - now)/H) : 0.0;
+      }
     }
 
     // Estimated next pill if you eat at the earliest possible time (eatAgainAt)
