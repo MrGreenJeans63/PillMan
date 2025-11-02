@@ -207,9 +207,17 @@ function render(){
     // use eatAgainAt (earliest eat time if you act at soonest sensible moment)
     
     // Next safe pill must respect both meal (2h) and pill (8h) if last pill exists
-    let nextSafePill = safePill;
-    if (lp) nextSafePill = Math.max(nextSafePill, lp + 8*H);
-    const untilSafePill = nextSafePill ? (nextSafePill - now)/H : null;
+    let nextSafePill = null;
+    const byMeal = (lm != null) ? (lm + 2*H) : null;
+    const byPill = (lp != null) ? (lp + 8*H) : null;
+    if (byMeal != null && byPill != null) {
+      nextSafePill = Math.max(byMeal, byPill);
+    } else if (byMeal != null) {
+      nextSafePill = byMeal;
+    } else if (byPill != null) {
+      nextSafePill = byPill;
+    }
+    const untilSafePill = (nextSafePill != null) ? (nextSafePill - now)/H : null;
 
     // Eat Again (earliest if you act at soonest sensible moment now)
     let eatAgainAt = null;
