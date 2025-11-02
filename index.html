@@ -143,6 +143,25 @@ const showClock = ts => {
 const nowTS=()=>Date.now();
 let LAST_MEAL_TS=null, LAST_PILL_TS=null;
 
+// LocalStorage persistence
+const LS_KEY = 'pillman_pm2a_v1';
+function saveLocal(){
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify({V:1, MEAL: LAST_MEAL_TS, PILL: LAST_PILL_TS}));
+  } catch(e) {}
+}
+function loadLocal(){
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    if (d && d.V===1){
+      LAST_MEAL_TS = (typeof d.MEAL === 'number') ? d.MEAL : null;
+      LAST_PILL_TS = (typeof d.PILL === 'number') ? d.PILL : null;
+    }
+  } catch(e) {}
+}
+
 function plan(){
   const now = nowTS();
   if (!LAST_MEAL_TS) return { state:'none', msg:'Log a meal to begin.' };
@@ -313,13 +332,21 @@ function parseClockInput(t){ if(!t) return null; const s=String(t).trim(); const
 }
 
 function wire(){
-  $('btn_meal').onclick=()=>{LAST_MEAL_TS=nowTS();render();};
-  $('btn_pill').onclick=()=>{LAST_PILL_TS=nowTS();render();};
-  $('btn_edit_meal').onclick=()=>{const inp=prompt('Last meal (HH or HH:MM)?');const ts=parseClockInput(inp);if(ts){LAST_MEAL_TS=ts;render();}};
-  $('btn_edit_pill').onclick=()=>{const inp=prompt('Last pill (HH or HH:MM)?');const ts=parseClockInput(inp);if(ts){LAST_PILL_TS=ts;render();}};
+  $('btn_meal').onclick = ()=>{ LAST_MEAL_TS = nowTS(); saveLocal(); render(); };
+  $('btn_pill').onclick = ()=>{ LAST_PILL_TS  = nowTS(); saveLocal(); render(); };
+  $('btn_edit_meal').onclick = ()=>{
+    const inp = prompt('Last meal (HH or HH:MM)?');
+    const ts  = parseClockInput(inp);
+    if (ts){ LAST_MEAL_TS = ts; saveLocal(); render(); }
+  };
+  $('btn_edit_pill').onclick = ()=>{
+    const inp = prompt('Last pill (HH or HH:MM)?');
+    const ts  = parseClockInput(inp);
+    if (ts){ LAST_PILL_TS = ts; saveLocal(); render(); }
+  };
 }
 
-document.addEventListener('DOMContentLoaded',()=>{wire();render();setInterval(render,15000);});
+document.addEventListener('DOMContentLoaded',()=>{ loadLocal(); wire(); render(); setInterval(render,15000); });
 </script>
 </body>
 </html>
