@@ -1,369 +1,114 @@
+
+
 <!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-<title>Pill Man</title>
-<meta name="theme-color" content="#0b0f14"/>
+<title>Pill Man — Meal Anchored</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@100;300;700&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#0b0f14"/>
 <style>
   :root{
-    --bg1:#0b0f14; --bg2:#111720;
-    --white:#e5f0ff; --sub:#a6b3c2;
+    --bg:#0b0f14; --fg:#e5f0ff; --muted:#8aa0b3;
+    --ok:#4ce07a; --warn:#ffb74d; --bad:#ff4d4d;
   }
-  html,body{height:100%}
-  body{
-    margin:0;
-    background:linear-gradient(180deg,var(--bg1),var(--bg2));
-    color:var(--white);
-    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Rounded","SF Pro Text",system-ui,Arial,sans-serif;
-    font-weight:300;                 /* thin vibe */
-    -webkit-font-smoothing:antialiased;
-    -webkit-text-size-adjust:100%;
-    display:flex; justify-content:center; align-items:stretch;
-    min-height:100svh;
-  }
-  .wrap{
-    width:clamp(340px,92vw,480px);
-    padding:
-      calc(18px + env(safe-area-inset-top))
-      calc(18px + env(safe-area-inset-right))
-      calc(22px + env(safe-area-inset-bottom))
-      calc(18px + env(safe-area-inset-left));
-    display:grid;
-    row-gap:14px;
-    grid-template-rows:min-content auto min-content min-content min-content;
-  }
-  /* header */
-  .title{font-size:15px; font-weight:700; text-align:center}
-  .state{font-size:13px; color:var(--sub); text-align:center}
-
-  /* primary blocks (STACKED) */
-  .label{color:var(--sub); font-size:12px; letter-spacing:.6px; text-align:center; margin-bottom:6px}
-  .time{font-weight:300; font-size:clamp(48px,14vw,84px); line-height:.9; text-align:center; white-space:nowrap}
-
-  /* Inter Tight Thin 100 for all data */
-  .focus .time,
-  .info .val,
-  .controls .btn {
-    font-family:'Inter Tight', -apple-system, system-ui, Arial, sans-serif;
-    font-weight:100;
-    font-variation-settings:'wght' 100;
-  }
-
-  /* Stacked focus group: NEXT PILL + HOURS LEFT TO EAT */
-  .focus {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    gap: 6px; /* smaller spacing */
-    margin-top: 6vh; /* breathing room */
-  }
-  .focus .label {
-    color: #8aa0b3;
-    font-size: 11px;
-    letter-spacing: .5px;
-    font-weight: 600;
-    margin-top: 4px; /* close to its value */
-  }
-  .focus .time {
-    line-height: .9;
-    white-space: nowrap;
-    font-weight: 300;         /* thin look */
-  }
-  .focus .time.nextpill {
-    color: #ffffff;           /* pure white */
-    font-size: clamp(74px, 21vw, 114px); /* larger primary */
-    margin-left: 8px; /* visual center correction for small AM/PM */
-  }
-  .focus .time.nextpill small {
-    font-size: .25em;       /* 50% smaller */
-    vertical-align: top;
-    margin-left: -6px;      /* move closer (to the left) */
-  }
-  .focus .time.eatleft {
-    color: #4ce07a;           /* bright green */
-    font-size: clamp(54px, 17vw, 90px); /* ~20% smaller */
-    margin-top: 4px;
-  }
-  .focus .time.eatleft small {
-    font-size: .25em;       /* same small scale as PM */
-    vertical-align: top;
-    margin-left: -6px;      /* match spacing */
-  }
-  .focus .pair {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-  }
-  .focus .pair + .pair {
-    margin-top: 12px; /* separate the two data/label sets */
-  }
-
-  /* info column (stacked, all white thin) */
-  .info{display:grid; row-gap:4px; justify-items:center; margin-bottom:4px;}
-  .info .val{font-size:clamp(23px,6.5vw,34px); font-weight:300}
-  .caps{
-    font-size:11px;           /* match focus labels */
-    color:var(--white);       /* white captions */
-    letter-spacing:.5px;
-    text-transform:uppercase;
-  }
-  .info .ipair { display:flex; flex-direction:column; align-items:center; text-align:center; }
-  .info .ipair + .ipair { margin-top: 6px; }
-  /*
-  .info .row{display:flex; justify-content:space-evenly; align-items:center; gap:10px; width:100%;}
-  .info .row:nth-child(1) { justify-content:flex-start; gap:20px; width:100%; }
-  .info .row:nth-child(1) .ipair { align-items:flex-start; text-align:left; }
-  .info .row:nth-child(2) { justify-content:flex-end; gap:20px; width:100%; }
-  .info .row:nth-child(2) .ipair { align-items:flex-end; text-align:right; }
-  */
-  /* Two-column grid per row: left/right aligned to screen edges; each ipair centers its own caption under data */
-  .info .row{
-    display:grid;
-    grid-template-columns: 1fr 1fr;
-    align-items:center;
-    width:100%;
-  }
-  .info .row .ipair{ display:flex; flex-direction:column; align-items:center; text-align:center; }
-  .info .row .ipair:first-child {
-    justify-self: start;
-    margin-left: 71px;  /* pull away from left edge */
-  }
-  .info .row .ipair:last-child {
-    justify-self: end;
-    margin-right: 71px; /* pull away from right edge */
-  }
-
-  .info #eat_again { color: #4ce07a; }
-  .info #eat_again + .caps { color: var(--white); }
-  .info #last_meal { color: #4ce07a; }
-  .info #last_meal + .caps { color: var(--white); }
-  .info #eat_between { color: #4ce07a; }
-  .info #eat_between + .caps { color: var(--white); }
-
-  /* status */
-  .status{font-size:16px; text-align:center; color:var(--sub); font-weight:600; margin-top:4px; margin-bottom:12px;}
-
-  /* controls */
-  .controls{display:grid; grid-template-columns:1fr 1fr; gap:12px; align-self:end}
-  .btn{
-    height:46px; border:none; border-radius:0; /* square corners */
-    background:#1b2a3a; color:var(--white); font-weight:700; font-size:15px; letter-spacing:.4px;
-  }
-
-  .info { margin-top: 4vh; }
-  .controls { margin-bottom: 8vh; }
+  html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+    display:flex;justify-content:center;align-items:center;
+    -webkit-font-smoothing:antialiased;}
+  .wrap{width:min(92vw,480px);display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px;}
+  .decision{display:flex;flex-direction:column;align-items:center;gap:8px;}
+  .decision .answer{font-family:'Inter Tight',system-ui,sans-serif;font-weight:100;
+    font-size:clamp(60px,18vw,100px);}
+  .decision .label{font-size:12px;letter-spacing:.5px;color:var(--muted);}
+  .timepair{display:flex;flex-direction:column;align-items:center;}
+  .timepair .time{font-family:'Inter Tight',system-ui,sans-serif;font-weight:100;
+    font-size:clamp(42px,12vw,72px);}
+  .status{font-size:15px;}
+  .ok{color:var(--ok);} .warn{color:var(--warn);} .bad{color:var(--bad);}
+  .controls{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px;}
+  button{height:46px;border:none;border-radius:8px;font-family:'Inter Tight',system-ui;
+    font-weight:100;font-size:15px;cursor:pointer;color:var(--bg);}
+  #btn_pill{background:var(--warn);} #btn_meal{background:var(--bad);}
+  #btn_edit_pill{background:#666;color:#fff;} #btn_edit_meal{background:#666;color:#fff;}
 </style>
 </head>
 <body>
-  <main class="wrap">
+<div class="wrap">
+  <div class="decision">
+    <div class="answer" id="can_pill">—</div>
+    <div class="label" id="decision_label">CAN I TAKE A PILL NOW?</div>
+  </div>
+  <div class="timepair">
+    <div class="time" id="safe_time">—</div>
+    <div class="label" id="safe_label">SAFE / EAT AGAIN AT</div>
+  </div>
+  <div class="status" id="status">Log a meal to begin.</div>
+  <div class="controls">
+    <button id="btn_meal">LOG MEAL</button>
+    <button id="btn_pill">LOG PILL</button>
+    <button id="btn_edit_meal">EDIT MEAL</button>
+    <button id="btn_edit_pill">EDIT PILL</button>
+  </div>
+</div>
 
-    <!-- STACKED FOCUS group -->
-    <section class="focus">
-      <div class="pair">
-        <div class="time nextpill" style="margin-left: 20px;">12:30 <small>PM</small></div>
-        <div class="label">NEXT PILL</div>
-      </div>
-      <div class="pair">
-        <div class="time eatleft">3.4 <small>h</small></div>
-        <div class="label">HOURS LEFT TO EAT</div>
-      </div>
-    </section>
-
-    <!-- INFO (stacked) -->
-    <section class="info">
-      <div class="row">
-        <div class="ipair">
-          <div class="val" id="last_pill">—</div>
-          <div class="caps">Last Pill</div>
-        </div>
-        <div class="ipair">
-          <div class="val" id="since_pill">—</div>
-          <div class="caps">Since Pill</div>
-        </div>
-      </div>
-      <div class="row">
-        <div class="ipair">
-          <div class="val" id="last_meal">—</div>
-          <div class="caps">Last Meal</div>
-        </div>
-        <div class="ipair">
-          <div class="val" id="eat_again">—</div>
-          <div class="caps">Eat Again</div>
-        </div>
-      </div>
-      <div class="ipair">
-        <div class="val" id="eat_between">—</div>
-        <div class="caps">Eat Between</div>
-      </div>
-    </section>
-
-    <div class="status" id="status">On target (+8 h) • Eat OK now</div>
-
-    <!-- controls -->
-    <section class="controls">
-      <button class="btn" id="btn_pill">LOG PILL</button>
-      <button class="btn" id="btn_meal">LOG MEAL</button>
-      <button class="btn" id="btn_edit_pill">EDIT PILL</button>
-      <button class="btn" id="btn_edit_meal">EDIT MEAL</button>
-    </section>
-  </main>
 <script>
-(function(){
-  const $ = id => document.getElementById(id);
-  const H = 3600e3;
-  const NO_EAT_1H = 3600e3;
-  const two = n => String(n).padStart(2,'0');
-  const nowTS = () => Date.now();
-  const LS_KEY = 'pillman_v2';
+const H = 3600e3;
+const $ = id => document.getElementById(id);
+const two = n=>String(n).padStart(2,'0');
+const showClock = ts => {
+  if(!ts) return '—';
+  const d=new Date(ts); let h=d.getHours(),m=d.getMinutes(),ap=h>=12?'PM':'AM'; h=h%12||12;
+  return `${h}:${two(m)} ${ap}`;
+};
+const nowTS=()=>Date.now();
+let LAST_MEAL_TS=null, LAST_PILL_TS=null;
 
-  let LAST_PILL_TS = null;
-  let LAST_MEAL_TS = null;
+function plan(){
+  const now=nowTS();
+  if(!LAST_MEAL_TS) return { state:'none', msg:'Log a meal to begin.' };
+  const sinceMeal=(now-LAST_MEAL_TS)/H;
+  const eatAfter=LAST_MEAL_TS+2*H;
+  const safeAfter=eatAfter;
+  const eatAgain=(LAST_PILL_TS)?LAST_PILL_TS+1*H:null;
+  let state='ok', msg='';
+  // logic
+  if(sinceMeal<2){ state='bad'; msg=`Too soon after meal • Safe at ${showClock(safeAfter)}`; }
+  else if(LAST_PILL_TS && now < (LAST_PILL_TS + 1*H)){ state='bad'; msg=`Post-pill lock • Eat again at ${showClock(eatAgain)}`; }
+  else{ state='ok'; msg='Safe to take pill'; }
+  return {state,msg,safeAfter,eatAgain};
+}
 
-  function showClock(ts){
-    if(ts==null) return '—';
-    const d = new Date(ts);
-    let h = d.getHours(), m = d.getMinutes();
-    const ap = h>=12 ? 'PM' : 'AM';
-    h = h%12 || 12;
-    return `${h}:${two(m)} ${ap}`;
+function render(){
+  const r=plan();
+  const ans=$('can_pill'), safe=$('safe_time'), status=$('status');
+  if(r.state==='none'){ ans.textContent='—'; safe.textContent='—'; status.textContent=r.msg; return; }
+  ans.textContent=(r.state==='ok')?'YES':'NO';
+  ans.className='answer '+r.state;
+  if(r.state==='ok'){
+    safe.textContent=showClock(nowTS()+1*H);
+    $('safe_label').textContent='EAT AGAIN AT';
+  }else{
+    safe.textContent=(r.state==='bad' && r.safeAfter)?showClock(r.safeAfter):'—';
+    $('safe_label').textContent='SAFE AT';
   }
-  function showClockHTML(ts){
-    if(ts==null) return '—';
-    const d = new Date(ts);
-    let h = d.getHours(), m = d.getMinutes();
-    const ap = h>=12 ? 'PM' : 'AM';
-    h = h%12 || 12;
-    return `${h}:${two(m)} <small>${ap}</small>`;
-  }
-  function parseClockInput(t){
-    if(!t) return null; const s = String(t).trim(); if(!s) return null;
-    const d = new Date();
-    if(s.includes(':')){ const [Hh, Mm='0'] = s.split(':'); const hh=+Hh, mm=+Mm; if(isNaN(hh)||isNaN(mm)) return null; d.setHours(hh, mm, 0, 0); return d.getTime(); }
-    if(s.includes('.')){ const f=+s; if(isNaN(f)) return null; const hh=Math.trunc(f), mm=Math.round((f-hh)*60); d.setHours(hh, mm, 0, 0); return d.getTime(); }
-    const hh=+s; if(isNaN(hh)) return null; d.setHours(hh,0,0,0); return d.getTime();
-  }
+  status.textContent=r.msg;
+}
 
-  function saveLocal(){ try{ localStorage.setItem(LS_KEY, JSON.stringify({V:2, LAST_PILL_TS, LAST_MEAL_TS})); }catch(e){} }
-  function loadLocal(){ try{ const raw=localStorage.getItem(LS_KEY); if(!raw) return; const d=JSON.parse(raw); if(d&&d.V===2){ LAST_PILL_TS=d.LAST_PILL_TS??null; LAST_MEAL_TS=d.LAST_MEAL_TS??null; } }catch(e){} }
+function parseClockInput(t){ if(!t) return null; const s=String(t).trim(); const d=new Date();
+  if(s.includes(':')){const[Hh,Mm='0']=s.split(':'); d.setHours(+Hh,+Mm,0,0); return d.getTime();}
+  const hh=+s;if(isNaN(hh))return null; d.setHours(hh,0,0,0); return d.getTime();
+}
 
-  function plan(){
-    const now = nowTS();
-    if(LAST_PILL_TS==null){
-      return { now, lp:null, lm:LAST_MEAL_TS, nextP:null, eatAfter:null, eatBefore:null, overdue:false, hoursSince:null, hoursLeft:null, eatAgainAt:null };
-    }
-    const lp = LAST_PILL_TS;
-    const nextP = lp + 8*H;            // hard +8h (no auto-roll)
-    const eatAfter  = lp + 1*H;        // 1h after pill
-    const eatBefore = nextP - 2*H;     // 2h before pill
-    const overdue   = now > nextP;
-    const hoursSince= (now - lp)/H;
-    let hoursLeft = null;
-    if (lp == null) {
-      hoursLeft = null;
-    } else if (now < eatBefore) {
-      hoursLeft = (eatBefore - now)/H;          // positive hours remaining
-    } else if (now < nextP) {
-      hoursLeft = ((nextP - now) <= 1*H) ? -((nextP - now)/H) : 0; // negative countdown in last hour, else 0
-    } else {
-      hoursLeft = -0; // overdue → treat as 0.0 with negative sign for state
-    }
+function wire(){
+  $('btn_meal').onclick=()=>{LAST_MEAL_TS=nowTS();render();};
+  $('btn_pill').onclick=()=>{LAST_PILL_TS=nowTS();render();};
+  $('btn_edit_meal').onclick=()=>{const inp=prompt('Last meal (HH or HH:MM)?');const ts=parseClockInput(inp);if(ts){LAST_MEAL_TS=ts;render();}};
+  $('btn_edit_pill').onclick=()=>{const inp=prompt('Last pill (HH or HH:MM)?');const ts=parseClockInput(inp);if(ts){LAST_PILL_TS=ts;render();}};
+}
 
-    // Next time you can eat again (clock time)
-    let eatAgainAt = null;
-    if (lp != null) {
-      if (now < eatAfter) {
-        eatAgainAt = eatAfter; // still in 1h lock
-      } else if (now < eatBefore) {
-        // inside eat window: next opportunity if you miss is after next pill + 1h
-        eatAgainAt = nextP + NO_EAT_1H;
-      } else {
-        // after cutoff, next opportunity is after taking the pill + 1h
-        const candidate = nextP + NO_EAT_1H;
-        eatAgainAt = Math.max(now + NO_EAT_1H, candidate);
-      }
-    }
-
-    return { now, lp, lm:LAST_MEAL_TS, nextP, eatAfter, eatBefore, overdue, hoursSince, hoursLeft, eatAgainAt };
-  }
-
-  function render(){
-    const r = plan();
-    // top focus values
-    const nextPEl = document.querySelector('.time.nextpill');
-    const eatLeftEl = document.querySelector('.time.eatleft');
-    nextPEl.innerHTML = showClockHTML(r.nextP);
-    const h = r.hoursLeft;
-    if (h == null) {
-      eatLeftEl.innerHTML = '—';
-      eatLeftEl.style.color = '#4ce07a';
-    } else {
-      const neg = (h < 0) || Object.is(h, -0);
-      const val = Math.abs(h).toFixed(1);
-      eatLeftEl.innerHTML = `${neg?'-':''}${val} <small>h</small>`;
-      eatLeftEl.style.color = neg ? '#ffb74d' : '#4ce07a';
-    }
-
-    // info values
-    if($('since_pill')) $('since_pill').textContent = (r.hoursSince==null? '—' : `${Math.max(0,r.hoursSince).toFixed(1)} h`);
-    if($('last_pill')) $('last_pill').textContent = showClock(r.lp);
-    if($('last_meal')) $('last_meal').textContent = showClock(r.lm);
-    if($("eat_again")) {
-      const eatAgainEl = $("eat_again");
-      eatAgainEl.textContent = showClock(r.eatAgainAt);
-      // highlight when the window has ≤ 1.0 h left and still > 0
-      if (r.hoursLeft != null && r.hoursLeft <= 1 && r.hoursLeft > 0) {
-        eatAgainEl.style.color = '#ffb74d'; // yellow warn
-      } else {
-        eatAgainEl.style.color = '#4ce07a'; // default green for food data
-      }
-    }
-    if($('eat_between')) $('eat_between').textContent = `${showClock(r.eatAfter)} - ${showClock(r.eatBefore)}`;
-
-    // status
-    const s = $('status');
-    if(!s) return;
-    s.classList.remove('ok','warn','bad');
-    if(r.overdue){
-      s.classList.add('bad');
-      s.textContent = `Pill overdue • do not eat • take pill now • Eat after ${showClock(r.now + 1*H)}`;
-    } else if(r.now < (r.lp + 1*H)){
-      s.classList.add('bad');
-      s.textContent = `Do not eat now • wait until ${showClock(r.lp + 1*H)}`;
-    } else if(r.now >= (r.eatBefore||0)){
-      s.classList.add('bad');
-      s.textContent = 'Do not eat now';
-    } else if((r.nextP - r.now) <= 3*H){
-      s.classList.add('warn');
-      s.textContent = 'Pill soon • 1h to eat';
-    } else {
-      s.classList.add('ok');
-      s.textContent = 'On target (+8 h) • Eat OK now';
-    }
-  }
-
-  function wire(){
-    const btnP = document.getElementById('btn_pill');
-    const btnM = document.getElementById('btn_meal');
-    const btnEP= document.getElementById('btn_edit_pill');
-    const btnEM= document.getElementById('btn_edit_meal');
-    if(btnP) btnP.onclick = ()=>{ LAST_PILL_TS = nowTS(); saveLocal(); render(); };
-    if(btnM) btnM.onclick = ()=>{ LAST_MEAL_TS = nowTS(); saveLocal(); render(); };
-    if(btnEP) btnEP.onclick= ()=>{ const cur= LAST_PILL_TS? showClock(LAST_PILL_TS):''; const inp=prompt('Last Pill (HH or HH:MM or 4.5)', cur); if(inp==null)return; const ts=parseClockInput(inp); if(ts!=null){ LAST_PILL_TS=ts; saveLocal(); render(); } };
-    if(btnEM) btnEM.onclick= ()=>{ const cur= LAST_MEAL_TS? showClock(LAST_MEAL_TS):''; const inp=prompt('Last Meal (HH or HH:MM or 4.5)', cur); if(inp==null)return; const ts=parseClockInput(inp); if(ts!=null){ LAST_MEAL_TS=ts; saveLocal(); render(); } };
-  }
-
-  // boot
-  loadLocal();
-  wire();
-  render();
-  setInterval(render, 15000);
-})();
+document.addEventListener('DOMContentLoaded',()=>{wire();render();setInterval(render,15000);});
 </script>
 </body>
 </html>
