@@ -150,7 +150,6 @@ function plan(){
   const sinceMeal = (now - LAST_MEAL_TS) / H;
   const safeAfter = LAST_MEAL_TS + 2*H;           // earliest safe pill time (meal anchor)
   const pillLock  = (LAST_PILL_TS && now < (LAST_PILL_TS + 1*H));
-
   // Decide state and guidance message
   let state, msg;
   if (sinceMeal < 2) {
@@ -228,13 +227,16 @@ function render(){
 
     // Eat Again (earliest if you act at soonest sensible moment now)
     let eatAgainAt = null;
-    if (lm){
+    if (lm) {
       if (sinceMeal < 2) {
-        eatAgainAt = safePill + 1*H;             // take at safe, then +1h
+        // earliest: take at meal-safe → eat 1h later
+        eatAgainAt = safePill + 1*H;
       } else if (lp && now < (lp + 1*H)) {
-        eatAgainAt = lp + 1*H;                   // post-pill lock
+        // post-pill lock
+        eatAgainAt = lp + 1*H;
       } else {
-        eatAgainAt = now + 1*H;                  // take now → eat in 1h
+        // safe window: take now → eat in 1h
+        eatAgainAt = now + 1*H;
       }
     }
     // Hours until next possible meal is time until eatAgainAt
