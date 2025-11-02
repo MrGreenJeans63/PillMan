@@ -80,6 +80,9 @@
     font-weight:100;
     color:var(--fg);
   }
+  .dataview .val.ok { color: var(--ok); }
+  .dataview .val.warn { color: var(--warn); }
+  .dataview .val.bad { color: var(--bad); }
   .dataview .group{
     margin-top:8px;
     margin-bottom:4px;
@@ -238,6 +241,16 @@ function render(){
       ? Math.max(0, sincePill) + Math.max(0, untilNextMeal) + 2
       : null;
 
+    // helper to classify gap color
+    const gapClass = (h) => {
+      if (h == null) return '';
+      const v = Math.max(0, h);
+      if (v >= 7 && v <= 9) return 'ok';
+      if ((v >= 5 && v <= 6) || (v >= 10 && v <= 11)) return 'warn';
+      if (v <= 4 || v >= 12) return 'bad';
+      return '';
+    };
+
     // Bind
     $('dev_last_meal').textContent     = lm ? showClock(lm) : '—';
     $('dev_since_meal').textContent    = (sinceMeal!=null) ? `${Math.max(0,sinceMeal).toFixed(1)} h` : '—';
@@ -252,6 +265,20 @@ function render(){
     $('dev_until_safe_pill').textContent= (untilSafePill!=null) ? `${(untilSafePill).toFixed(1)} h` : '—';
     $('dev_est_next_pill').textContent = estNextPillFromMeal ? showClock(estNextPillFromMeal) : '—';
     $('dev_est_gap').textContent       = (estGap!=null) ? `${estGap.toFixed(1)} h` : '—';
+
+    // After binding values, colorize HOURS SINCE PILL and EST. GAP
+    const spEl = $('dev_since_pill');
+    if (spEl) {
+      spEl.classList.remove('ok','warn','bad');
+      const cls = gapClass(sincePill);
+      if (cls) spEl.classList.add(cls);
+    }
+    const egEl = $('dev_est_gap');
+    if (egEl) {
+      egEl.classList.remove('ok','warn','bad');
+      const cls2 = gapClass(estGap);
+      if (cls2) egEl.classList.add(cls2);
+    }
   }
 }
 
