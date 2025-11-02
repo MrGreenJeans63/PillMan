@@ -45,8 +45,16 @@
     cursor:pointer;
     color:#fff;
   }
-  #btn_meal { background:#ff4d4d; color:#fff; }
-  #btn_pill { background:#4ce07a; color:#fff; }
+  #btn_meal {
+    background:#ff4d4d;
+    color:#000; /* black text */
+    font-weight:300; /* slightly thicker */
+  }
+  #btn_pill {
+    background:#4ce07a;
+    color:#000; /* black text */
+    font-weight:300; /* slightly thicker */
+  }
   #btn_edit_meal, #btn_edit_pill { background:#666; color:#fff; }
   .dataview{
     display:grid;
@@ -99,16 +107,15 @@
     <div class="group">EATING</div>
     <div class="row"><span class="label">LAST MEAL</span><span class="val" id="dev_last_meal">—</span></div>
     <div class="row"><span class="label">HOURS SINCE MEAL</span><span class="val" id="dev_since_meal">—</span></div>
-    <div class="row"><span class="label">EST. NEXT MEAL</span><span class="val" id="dev_next_meal">—</span></div>
-    <div class="row"><span class="label">HOURS UNTIL NEXT MEAL</span><span class="val" id="dev_until_next_meal">—</span></div>
     <div class="row"><span class="label">EAT AGAIN (IF PILL SOONEST)</span><span class="val" id="dev_eat_again">—</span></div>
+    <div class="row"><span class="label">HOURS UNTIL NEXT MEAL</span><span class="val" id="dev_until_next_meal">—</span></div>
     <div class="row"><span class="label">HOURS LEFT TO EAT</span><span class="val" id="dev_hours_left">—</span></div>
+    <div class="row"><span class="label">EST. NEXT MEAL</span><span class="val" id="dev_next_meal">—</span></div>
 
     <div class="group">PILL</div>
     <div class="row"><span class="label">SAFE PILL TIME</span><span class="val" id="dev_safe_pill">—</span></div>
     <div class="row"><span class="label">LAST PILL</span><span class="val" id="dev_last_pill">—</span></div>
     <div class="row"><span class="label">HOURS SINCE PILL</span><span class="val" id="dev_since_pill">—</span></div>
-    <div class="row"><span class="label">NEXT SAFE PILL</span><span class="val" id="dev_next_safe_pill">—</span></div>
     <div class="row"><span class="label">HOURS UNTIL SAFE PILL</span><span class="val" id="dev_until_safe_pill">—</span></div>
     <div class="row"><span class="label">EST. NEXT PILL (MEAL)</span><span class="val" id="dev_est_next_pill">—</span></div>
     <div class="row"><span class="label">EST. GAP (LAST→NEXT)</span><span class="val" id="dev_est_gap">—</span></div>
