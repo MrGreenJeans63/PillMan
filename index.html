@@ -177,7 +177,7 @@ function plan(){
     eatAgainAt = now + 1*H;
   }
 
-  return { state, msg, safeAfter, eatAgainAt };
+  return { state, msg, safeAfter, eatAgainAt, pillLock };
 }
 
 function render(){
@@ -186,12 +186,19 @@ function render(){
   if(r.state==='none'){ ans.textContent='—'; safe.textContent='—'; status.textContent=r.msg; return; }
   ans.textContent=(r.state==='ok')?'YES':'NO';
   ans.className='answer '+r.state;
-  if(r.state==='ok'){
-    safe.textContent=showClock(nowTS()+1*H);
-    $('safe_label').textContent='EAT AGAIN AT';
-  }else{
-    safe.textContent=(r.state==='bad' && r.safeAfter)?showClock(r.safeAfter):'—';
-    $('safe_label').textContent='SAFE AT';
+  const now = nowTS();
+  if (r.state === 'bad' && r.pillLock) {
+    // Post‑pill lock: show eat‑again unlock time
+    safe.textContent = LAST_PILL_TS ? showClock(LAST_PILL_TS + 1*H) : '—';
+    $('safe_label').textContent = 'EAT AGAIN AT';
+  } else if (r.state === 'bad') {
+    // Meal lock: show safe‑pill time (last meal + 2h)
+    safe.textContent = r.safeAfter ? showClock(r.safeAfter) : '—';
+    $('safe_label').textContent = 'SAFE AT';
+  } else {
+    // Safe: if you took the pill now, you could eat again in 1h
+    safe.textContent = showClock(now + 1*H);
+    $('safe_label').textContent = 'EAT AGAIN AT';
   }
   status.textContent=r.msg;
   if ($('dev_last_meal')) {
